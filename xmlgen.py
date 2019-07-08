@@ -337,14 +337,14 @@ def FindMostRecentFile(directory, pattern):
 print("XML auto-generation for highlights...\n\n")
 
 #Directories
-reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
-#reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
+#reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
+reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
 #outputDir = 'xml\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 
 #wait = input("PAUSED...when ready press enter")
