@@ -179,10 +179,15 @@ def FindMostRecentFile(directory, pattern):
 
 
 #main script
-print("New and Updated content report for highlights...\n\n")
+env = sys.argv[1] #taken from command line
+print("New and Updated content report for highlights...")
 
 #Directories
-reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
+if env == 'dev': 
+    reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
+    print('Export directory set to DEV folder...')
+else: reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
+
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
 globalmetricsDir = '\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER_withShortcut_AdHoc\\'
