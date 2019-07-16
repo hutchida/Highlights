@@ -135,8 +135,9 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
                     lncicite.set('normcite', pguid)
                     lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
                     lncicontent.text = doctitle
-                    comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
-                    corepara.append(comment) #add comment after link
+                    if UnderReview == True:
+                        comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
+                        corepara.append(comment) #add comment after link
 
     #Updated  
     if len(dfUpdateHighlights[(dfUpdateHighlights.PA ==PA) & (dfUpdateHighlights.ContentItemType != 'QandAs')]) > 0: #if there are any new docs for the PA, create new doc section 
@@ -191,8 +192,9 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
                     lncicite.set('normcite', pguid)
                     lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
                     lncicontent.text = doctitle
-                    comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
-                    corepara.append(comment) #add comment after link
+                    if UnderReview == True:
+                        comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
+                        corepara.append(comment) #add comment after link
     
     
    
@@ -235,8 +237,9 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
             lncicite.set('normcite', pguid)
             lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
             lncicontent.text = doctitle
-            comment = etree.Comment('Doc ID: ' + str(DocID))# + ' UNDER REVIEW: ' + str(UnderReview))
-            corepara.append(comment) #add comment after link
+            if UnderReview == True:
+                comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
+                corepara.append(comment) #add comment after link
 
     
 
