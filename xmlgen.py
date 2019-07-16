@@ -309,6 +309,8 @@ dfNewHighlights = DFCleanup(pd.read_csv(weeklyNewReportFilepath), ShortcutTypeLi
 
 #XML generation for all PAs
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance and Reinsurance', 'IP', 'Life Sciences', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Incentives', 'Tax', 'TMT', 'Wills and Probate']    
+MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance and Reinsurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
+
 dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')
 highlightDate = str(time.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
 #highlightFileDate = str(time.strftime("%d%m%Y"))
@@ -316,7 +318,10 @@ highlightFileDate = str(time.strftime("%#d %B %Y"))
 highlightType = 'weekly'
 
 for PA in AllPAs:
-    XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
+    if PA not in MonthlyPAs:
+        XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
+    else:
+        print(PA, 'monthly highlight')
     #wait = input("PAUSED...when ready press enter")
 
 print('Finished')
