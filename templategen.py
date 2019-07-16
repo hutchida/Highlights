@@ -18,12 +18,12 @@ def FindNextWeekday(givendate, weekday):
     return givendate + datetime.timedelta(days=dayshift)
     
     
-def TemplateGeneration(PA, highlightdate, highlightType, outputDir):    
+def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSection, NSMAP):    
     constantPA = PA        
     PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*' + constantPA + ' Weekly highlights *.xml')
     print('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
     #extract info from last highlights' doc
-    NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
+    
     try:
         tree = etree.parse(PrevHighlightsFilepath)
         root = tree.getroot()
@@ -33,9 +33,9 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir):
             coretitle = trsecmain.find('core:title', NSMAP)
             try:
                 del coretitle.attrib["id"]
-                print('\nDELETED id attribute...' + coretitle.text)
+                #print('\nDELETED id attribute...' + coretitle.text)
             except KeyError: pass
-                
+            
             try: 
                 if coretitle.text == 'Dates for your diary': DatesSection = trsecmain
             except: pass
@@ -45,6 +45,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir):
             try: 
                 if coretitle.text == 'Useful information': UsefulInfoSection = trsecmain
             except: pass
+
     except:
         print('Problem loading previous xml for: ' + constantPA)
 
@@ -71,6 +72,10 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir):
     corepara.text = '[Mini-summary]'
     corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
     corepara.text = 'See News Analysis: [XML ref for News Analysis].'
+        
+    #Daily and weekly news alerts    
+    try: khbody.append(NewsAlertSection)
+    except: print('No Daily and weekly news alerts section found...')
         
     #Dates for your diary    
     try: khbody.append(DatesSection)
@@ -106,7 +111,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir):
     f.close()
 
     print('XML exported to...' + xmlfilepath)
-    wait = input("PAUSED...when ready press enter")
+    #wait = input("PAUSED...when ready press enter")
 
 def FindMostRecentFile(directory, pattern):
     try:
@@ -115,20 +120,37 @@ def FindMostRecentFile(directory, pattern):
         return filelist[0]
     except: return 'na'
 
+def HarvestTemplateSection(templateFilepath, searchterm, NSMAP):
+    
+    templatetree = etree.parse(templateFilepath)
+    templateroot = templatetree.getroot()
+    trsecmains = templateroot.findall('.//tr:secmain', NSMAP)
+    try:
+        for trsecmain in trsecmains:
+            coretitle = trsecmain.find('core:title', NSMAP)            
+            try:
+                if coretitle.text.find(searchterm) > -1: 
+                    return trsecmain
+            except: pass
+    except:
+        print('Problem loading template xml...')
+        return 'section not found'
 
 #main script
 print("Template auto-generation for highlights...\n\n")
-outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
+templateFilepath = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Templates\\All Highlights Template.xml'
+#outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
 #outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
-
+NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
+    
 
 #XML generation for all PAs
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance and Reinsurance', 'IP', 'Life Sciences', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Incentives', 'Tax', 'TMT', 'Wills and Probate']    
 
-#givendate = datetime.datetime.today()
-givendate = datetime.date(2019, 7, 25)
+givendate = datetime.datetime.today()
+#givendate = datetime.date(2019, 7, 25)
 
 givendate += datetime.timedelta(days=1)
 #if givendate is thursday add 1 day to fool the function
@@ -139,7 +161,10 @@ highlightDate = str(nextThursday.strftime("%#d %B %Y")) #the hash character turn
 print('Coming Thursday is: ', highlightDate)
 highlightType = 'weekly'
 
+NewsAlertSection = HarvestTemplateSection(templateFilepath, 'Daily and weekly news alerts', NSMAP)
+print(NewsAlertSection)
+wait = input("PAUSED...when ready press enter")
 for PA in AllPAs:
-    TemplateGeneration(PA, highlightDate, highlightType, outputDir)
+    TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
 
 print('Finished')

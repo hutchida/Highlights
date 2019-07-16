@@ -300,7 +300,8 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
 
 
     tree = etree.ElementTree(khdoc)
-    xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights ' + highlightFileDate + ' test.xml'
+    #xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights ' + highlightFileDate + ' test.xml'
+    xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' New and Updated content ' + highlightFileDate + ' test.xml'
     tree.write(xmlfilepath,encoding='utf-8')
 
     f = open(xmlfilepath,'r', encoding='utf-8')
