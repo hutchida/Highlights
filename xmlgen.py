@@ -66,16 +66,17 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
     khminisummary.text = "This [week's/month's] edition of [PA] [weekly/monthly] highlights includes:"
 
     #News
-    trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
-    coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
-    coretitle.text = '[Subtopic provided]'
-    trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
-    coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
-    coretitle.text = '[News analysis name]'
-    corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-    corepara.text = '[Mini-summary]'
-    corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-    corepara.text = 'See News Analysis: [XML ref for News Analysis].'
+    #trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+    #coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+    #coretitle.text = '[Subtopic provided]'
+    #trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
+    #coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
+    #coretitle.text = '[News analysis name]'
+    #corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+    #corepara.text = '[Mini-summary]'
+    #corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+    #corepara.text = 'See News Analysis: [XML ref for News Analysis].'
+    
     #Updated and New content
     trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
     coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
