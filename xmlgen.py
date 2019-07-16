@@ -25,16 +25,17 @@ def DFCleanup(df, ShortcutTypeList, ReportType):
         PA = df.PA.iloc[i]
         OriginalContentItemPA = PA
         DocTitle = df.DocTitle.iloc[i]
+        UnderReview = df.UnderReview.iloc[i]
         if ShortcutTypeList.count(ContentItemType) > 0: #if found in list
             ContentItemType = df.OriginalContentItemType.iloc[i]
             DocID = df.OriginalContentItemId.iloc[i]
             OriginalContentItemPA = df.OriginalContentItemPA.iloc[i]
 
-        list1 = [[DocID, ContentItemType, PA, OriginalContentItemPA, DocTitle]]            
+        list1 = [[DocID, ContentItemType, PA, OriginalContentItemPA, DocTitle, UnderReview]]            
         df1 = df1.append(list1) #append list to dataframe, export to csv outside of the loop
         #print(list1)
         i=i+1 #increment the counter   
-    df1.columns = ["DocID", "ContentItemType", "PA", "OriginalContentItemPA", "DocTitle"]   
+    df1.columns = ["DocID", "ContentItemType", "PA", "OriginalContentItemPA", "DocTitle", "UnderReview"]   
     #df1.to_csv(ReportType + '.csv', sep=',',index=False) 
     return df1
 
@@ -50,45 +51,16 @@ def strip_ns_prefix(tree):
     
 def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir):
     constantPA = PA        
-    PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*' + constantPA + ' Weekly highlights *.xml')
-    print('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
-    #extract info from last highlights' doc
+    
     NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
-    try:
-        tree = etree.parse(PrevHighlightsFilepath)
-        #strip_ns_prefix(tree)
-        root = tree.getroot()
-
-
-        trsecmains = root.findall('.//tr:secmain', NSMAP)
-        for trsecmain in trsecmains:
-            coretitle = trsecmain.find('core:title', NSMAP)
-            try:
-                del coretitle.attrib["id"]
-                print('\nDELETED id attribute...' + coretitle.text)
-            except KeyError: pass
-                
-            try: 
-                if coretitle.text == 'Dates for your diary': DatesSection = trsecmain
-            except: pass
-            try: 
-                if coretitle.text == 'Trackers': TrackersSection = trsecmain
-            except: pass
-            try: 
-                if coretitle.text == 'Useful information': UsefulInfoSection = trsecmain
-            except: pass
-    except:
-        print('Problem loading previous xml for: ' + constantPA)
-
 
     if PA == 'Life Sciences': PA = 'Life Sciences and Pharmaceuticals'
     if PA == 'Share Incentives': PA = 'Share Schemes'
     if PA == 'Insurance and Reinsurance': PA = 'Insurance'
-    khdoc = etree.Element('{%s}document' % NSMAP['kh'], nsmap=NSMAP)#('document', nsmap=NSMAP)
+    khdoc = etree.Element('{%s}document' % NSMAP['kh'], nsmap=NSMAP)
     khbody = etree.SubElement(khdoc, '{%s}body' % NSMAP['kh'])
     
     khdoctitle = etree.SubElement(khbody, '{%s}document-title' % NSMAP['kh'])
-    #khdoctitle.text = PA + '[weekly/monthly] highlights—[dd Month yyyy]'
     khdoctitle.text = PA + ' [weekly/monthly] highlights—[dd Month yyyy]'
     khminisummary = etree.SubElement(khbody, '{%s}mini-summary' % NSMAP['kh'])
     khminisummary.text = "This [week's/month's] edition of [PA] [weekly/monthly] highlights includes:"
@@ -139,7 +111,8 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
                     DocTitle = dfNew.DocTitle.iloc[x]
                     ContentType = dfNew.ContentItemType.iloc[x]
                     OriginalPA = dfNew.OriginalContentItemPA.iloc[x]
-                    
+                    UnderReview = dfNew.UnderReview.iloc[x]
+
                     if ContentType == 'Checklist': ContentType = 'PracticeNote'
 
                     dpsi = dfdpsi.loc[(dfdpsi['ContentType'] == ContentType) & (dfdpsi['PA'] == OriginalPA), 'DPSI'].item() #filters dataframe by contenttype and PA then tries to extract the only value under the column of DPSI
@@ -162,6 +135,8 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
                     lncicite.set('normcite', pguid)
                     lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
                     lncicontent.text = doctitle
+                    comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
+                    corepara.append(comment) #add comment after link
 
     #Updated  
     if len(dfUpdateHighlights[(dfUpdateHighlights.PA ==PA) & (dfUpdateHighlights.ContentItemType != 'QandAs')]) > 0: #if there are any new docs for the PA, create new doc section 
@@ -190,10 +165,13 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
                     DocTitle = dfUpdate.DocTitle.iloc[x]
                     ContentType = dfUpdate.ContentItemType.iloc[x]
                     OriginalPA = dfUpdate.OriginalContentItemPA.iloc[x]
+                    UnderReview = dfUpdate.UnderReview.iloc[x]
                     
                     if ContentType == 'Checklist': ContentType = 'PracticeNote'
 
                     dpsi = dfdpsi.loc[(dfdpsi['ContentType'] == ContentType) & (dfdpsi['PA'] == OriginalPA), 'DPSI'].item() #filters dataframe by contenttype and PA then tries to extract the only value under the column of DPSI
+                    
+                    
                     #pguidlookup = pguidlistDir + dpsi + '.xml'
                     try:
                         pguidlookupdom = etree.parse(pguidlistDir + dpsi + '.xml')
@@ -213,40 +191,10 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
                     lncicite.set('normcite', pguid)
                     lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
                     lncicontent.text = doctitle
+                    comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
+                    corepara.append(comment) #add comment after link
     
-    #Dates for your diary
     
-    try: khbody.append(DatesSection)
-    except: print('No Dates for your diary section found...')
-    
-    #trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
-    #coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
-    #coretitle.text = 'Dates for your diary'
-    #corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
-    #corepara.text = 'Table of webinars to go here'
-    #corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
-    #corepara.text = 'A separate subscription is required to view webinars. To book, see: <core:url address="www.lexiswebinars.co.uk/">Webinars</core:url> or please email: <core:url address="webinars@lexisnexis.co.uk" type="mailto">webinars@lexisnexis.co.uk</core:url> quoting the title of the webinar.'
-    
-    #Trackers
-
-    
-    try: khbody.append(TrackersSection)
-    except: print('No Tracker section found...')
-    
-    #trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
-    #coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
-    #coretitle.text = 'Trackers'
-    #corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
-    #corepara.text = 'We have the following trackers:'
-    #corelist = etree.SubElement(trsecmain, '{%s}list' % NSMAP['core'])
-    #corelist.set('type', 'bullet')
-    #corelistitem = etree.SubElement(corelist, '{%s}listitem' % NSMAP['core'])
-    #corepara = etree.SubElement(corelistitem, '{%s}para' % NSMAP['core'])
-    #lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
-    #lncicite.set('normcite', 'pguid-link-goes-here')
-    #lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
-    #lncicontent.text = 'tracker doc title goes here'
-    #Latest QAs
    
     #QAs should only ever be new
         
@@ -287,17 +235,10 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
             lncicite.set('normcite', pguid)
             lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
             lncicontent.text = doctitle
+            comment = etree.Comment('Doc ID: ' + str(DocID))# + ' UNDER REVIEW: ' + str(UnderReview))
+            corepara.append(comment) #add comment after link
 
-    #Useful information
-    try: khbody.append(UsefulInfoSection)
-    except: print('No Useful information section found...')
-    #trsecmain = etree.SubElement(khbody, 'tr:secmain')
-    #coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
-    #coretitle.text = 'Useful information'
-    #corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
-    #corepara.text = 'Automation of these highlights documents is ongoing...'
-
-
+    
 
     tree = etree.ElementTree(khdoc)
     #xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights ' + highlightFileDate + ' test.xml'
@@ -324,7 +265,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
 
 
 
-    #wait = input("PAUSED...when ready press enter")
+   
 
 def FindMostRecentFile(directory, pattern):
     try:
@@ -344,8 +285,8 @@ reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Update
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
 #outputDir = 'xml\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 
 #wait = input("PAUSED...when ready press enter")
@@ -372,5 +313,6 @@ highlightType = 'weekly'
 
 for PA in AllPAs:
     XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
+    #wait = input("PAUSED...when ready press enter")
 
 print('Finished')
