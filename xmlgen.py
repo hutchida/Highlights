@@ -217,6 +217,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
             DocTitle = dfNew.DocTitle.iloc[x]
             ContentType = dfNew.ContentItemType.iloc[x]
             OriginalPA = dfNew.OriginalContentItemPA.iloc[x]
+            UnderReview = dfNew.UnderReview.iloc[x]
             dpsi = dfdpsi.loc[(dfdpsi['ContentType'] == ContentType) & (dfdpsi['PA'] == OriginalPA), 'DPSI'].item() #filters dataframe by contenttype and PA then tries to extract the only value under the column of DPSI
             #pguidlookup = pguidlistDir + dpsi + '.xml'
             try:
@@ -283,14 +284,14 @@ def FindMostRecentFile(directory, pattern):
 print("XML auto-generation for highlights...\n\n")
 
 #Directories
-#reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
-reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
+reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
+#reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
 #outputDir = 'xml\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 
 #wait = input("PAUSED...when ready press enter")

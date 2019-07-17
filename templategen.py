@@ -148,6 +148,7 @@ NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http:/
 
 #XML generation for all PAs
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance and Reinsurance', 'IP', 'Life Sciences', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Incentives', 'Tax', 'TMT', 'Wills and Probate']    
+MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance and Reinsurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 
 givendate = datetime.datetime.today()
 #givendate = datetime.date(2019, 7, 25)
@@ -165,6 +166,7 @@ NewsAlertSection = HarvestTemplateSection(templateFilepath, 'Daily and weekly ne
 print(NewsAlertSection)
 wait = input("PAUSED...when ready press enter")
 for PA in AllPAs:
-    TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
+    if PA not in MonthlyPAs:
+        TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
 
 print('Finished')
