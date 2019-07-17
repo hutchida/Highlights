@@ -163,8 +163,8 @@ print('Coming Thursday is: ', highlightDate)
 highlightType = 'weekly'
 
 NewsAlertSection = HarvestTemplateSection(templateFilepath, 'Daily and weekly news alerts', NSMAP)
-print(NewsAlertSection)
-wait = input("PAUSED...when ready press enter")
+#print(NewsAlertSection)
+#wait = input("PAUSED...when ready press enter")
 for PA in AllPAs:
     if PA not in MonthlyPAs:
         TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
