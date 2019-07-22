@@ -196,12 +196,13 @@ lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis
 
 aicerFilename = FindMostRecentFile(aicerDir, '*AICER*.csv')
 aicerFilename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',aicerFilename).group(1)
-
 print('Loading the most recent AICER report: ' + aicerFilename)
+aicershortcutsFilename = FindMostRecentFile(globalmetricsDir, 'AllContentItemsExportWithShortCutNodeInfo_*.csv')
+print('Loading the most recent AICER Shortcuts report: ' + aicershortcutsFilename)
 #filter
 dfaicer = pd.read_csv(aicerDir + aicerFilename, encoding='utf-8', low_memory=False) #Load csv file into dataframe
 print('Aicer loaded...loading Aicer shortcuts...')
-dfshortcuts =  pd.read_csv(globalmetricsDir + 'AllContentItemsExportWithShortCutNodeInfo.csv', encoding='utf-8', low_memory=False) #Load csv file into dataframe
+dfshortcuts =  pd.read_csv(aicershortcutsFilename, encoding='utf-8', low_memory=False) #Load csv file into dataframe
 print('Aicer shortcuts loaded...filtering reports...')
 
 Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'weekly', 'new')

@@ -3,24 +3,46 @@
 
 import csv
 import pandas as pd
+from pandas.tseries.offsets import BMonthEnd
 import glob
 import os
 import fnmatch
 import re
 import time
 import datetime
+import calendar
 import sys
 import xml.etree.ElementTree as ET
 from lxml import etree
 
 def FindNextWeekday(givendate, weekday):
+    givendate += datetime.timedelta(days=1)
     dayshift = (weekday - givendate.weekday()) % 7
     return givendate + datetime.timedelta(days=dayshift)
+
+def FindLastWorkingDayOfMonth(givendate):
+    offset = BMonthEnd()
+    givendate += datetime.timedelta(days=3)
+    lastday = offset.rollforward(givendate)
+    return lastday
+
+def FindLastFridayOfMonth(givendate, weekday):
+    lastday = max(week[-3] for week in calendar.monthcalendar(givendate.year, givendate.month))
+    if givendate.day == lastday:
+        givendate += datetime.timedelta(days=7)
+        lastday = max(week[-3] for week in calendar.monthcalendar(givendate.year, givendate.month))
+    
+    lastday = datetime.date(givendate.year, givendate.month, lastday)
+    return lastday
+
+    #dayshift = (weekday - givendate.weekday()) % 7
+    #return givendate + datetime.timedelta(days=dayshift)
     
     
 def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSection, NSMAP):    
     constantPA = PA        
-    PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*' + constantPA + ' Weekly highlights *.xml')
+    #PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*' + constantPA + ' Weekly highlights *.xml')
+    PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*.xml')
     print('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
     #extract info from last highlights' doc
     
@@ -64,7 +86,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
     #News
     trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
     coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
-    coretitle.text = '[Subtopic provided]'
+    coretitle.text = '[Topic provided]'
     trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
     coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
     coretitle.text = '[News analysis name]'
@@ -91,7 +113,10 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
 
 
     tree = etree.ElementTree(khdoc)
-    xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights ' + highlightDate + ' test.xml'
+    if constantPA not in MonthlyPAs:
+        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights ' + highlightDate + ' test.xml'
+    else:
+        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Monthly highlights ' + highlightDate + ' test.xml'
     tree.write(xmlfilepath,encoding='utf-8')
 
     f = open(xmlfilepath,'r', encoding='utf-8')
@@ -140,8 +165,8 @@ def HarvestTemplateSection(templateFilepath, searchterm, NSMAP):
 print("Template auto-generation for highlights...\n\n")
 templateFilepath = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Templates\\All Highlights Template.xml'
 #outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
     
@@ -150,23 +175,29 @@ NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http:/
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance and Reinsurance', 'IP', 'Life Sciences', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Incentives', 'Tax', 'TMT', 'Wills and Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance and Reinsurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 
+try:
+    highlightType = sys.argv[1] #taken from command line
+except:
+    highlightType = 'weekly'
+
 givendate = datetime.datetime.today()
-#givendate = datetime.date(2019, 7, 25)
-
-givendate += datetime.timedelta(days=1)
-#if givendate is thursday add 1 day to fool the function
-
+#givendate = datetime.date(2019, 12, 31)
 nextThursday = FindNextWeekday(givendate, 3) # 3 is thursday
+lastWorkingDayOfMonth = FindLastWorkingDayOfMonth(givendate)
 
-highlightDate = str(nextThursday.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
-print('Coming Thursday is: ', highlightDate)
-highlightType = 'weekly'
+print('Last working day of the month is: ', str(lastWorkingDayOfMonth.strftime("%#d %B %Y")))
+print('Coming Thursday is: ', str(nextThursday.strftime("%#d %B %Y"))) #the hash character turns off the leading zero in the day
 
 NewsAlertSection = HarvestTemplateSection(templateFilepath, 'Daily and weekly news alerts', NSMAP)
 #print(NewsAlertSection)
-#wait = input("PAUSED...when ready press enter")
-for PA in AllPAs:
+
+for PA in AllPAs:    
     if PA not in MonthlyPAs:
+        highlightDate = str(nextThursday.strftime("%#d %B %Y"))
+    else:
+        highlightDate = str(lastWorkingDayOfMonth.strftime("%#d %B %Y"))
         TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
 
+    #TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
+    #wait = input("PAUSED...when ready press enter")
 print('Finished')
