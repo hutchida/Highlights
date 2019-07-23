@@ -49,7 +49,7 @@ def strip_ns_prefix(tree):
         element.tag = etree.QName(element).localname
     return tree
     
-def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir):
+def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir):
     constantPA = PA        
     
     NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
@@ -88,6 +88,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
         ContentTypeList=['PracticeNote', 'Precedent', 'Checklist']
         for ContentType in ContentTypeList:     
             dfNew = dfNewHighlights[(dfNewHighlights.PA ==PA) & (dfNewHighlights.ContentItemType == ContentType)] 
+            dfNew = dfNew.sort_values(['DocTitle'], ascending = True)
             newHighlightCount = len(dfNew)
             print(PA, ContentType, newHighlightCount, 'new docs')   
             if ContentType == 'Precedent':
@@ -145,6 +146,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
         ContentTypeList=['PracticeNote', 'Precedent', 'Checklist']#, 'QandAs']
         for ContentType in ContentTypeList:    
             dfUpdate = dfUpdateHighlights[(dfUpdateHighlights.PA ==PA) & (dfUpdateHighlights.ContentItemType == ContentType)] 
+            dfUpdate = dfUpdate.sort_values(['DocTitle'], ascending = True)
             updateHighlightCount = len(dfUpdate)
             print(PA, ContentType, updateHighlightCount, 'updates') 
             if ContentType == 'Precedent': 
@@ -202,6 +204,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
     #QAs should only ever be new
         
     dfNew = dfNewHighlights[(dfNewHighlights.PA ==PA) & (dfNewHighlights.ContentItemType == 'QandAs')] 
+    dfNew = dfNew.sort_values(['DocTitle'], ascending = True)
     newHighlightCount = len(dfNew)
     print(PA, newHighlightCount, 'new QAs')     
     if newHighlightCount > 0:            
@@ -246,8 +249,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
     
 
     tree = etree.ElementTree(khdoc)
-    #xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights ' + highlightFileDate + ' test.xml'
-    xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' New and Updated content ' + highlightFileDate + ' test.xml'
+    xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' New and Updated content ' + highlightDate + ' test.xml'
     tree.write(xmlfilepath,encoding='utf-8')
 
     f = open(xmlfilepath,'r', encoding='utf-8')
@@ -267,9 +269,6 @@ def XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfd
     f.close()
 
     print('XML exported to...' + xmlfilepath)
-
-
-
    
 
 def FindMostRecentFile(directory, pattern):
@@ -280,9 +279,6 @@ def FindMostRecentFile(directory, pattern):
     except: return 'na'
 
 
-#main script
-print("XML auto-generation for highlights...\n\n")
-
 #Directories
 #reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
 reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
@@ -290,39 +286,45 @@ reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Update
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
 #outputDir = 'xml\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
-
-
-#wait = input("PAUSED...when ready press enter")
-
-
-weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
-weeklyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
-monthlyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
-monthlyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
-
-
-#Cleanup the highlights list ready for xml generation
-ShortcutTypeList = ['SubtopicShortcut', 'Shortcut', 'SubtopicShortcutOfShortcut']
-dfUpdateHighlights = DFCleanup(pd.read_csv(weeklyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
-dfNewHighlights = DFCleanup(pd.read_csv(weeklyNewReportFilepath), ShortcutTypeList, reportDir + 'new')
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 #XML generation for all PAs
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance and Reinsurance', 'IP', 'Life Sciences', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Incentives', 'Tax', 'TMT', 'Wills and Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance and Reinsurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 
+try:
+    highlightType = sys.argv[1] #taken from command line
+except:
+    highlightType = 'weekly'
+
+#main script
+print("XML auto-generation for " + highlightType + " highlights...\n\n")
+
+#Cleanup the highlights list ready for xml generation
+ShortcutTypeList = ['SubtopicShortcut', 'Shortcut', 'SubtopicShortcutOfShortcut']
+if highlightType == "weekly":    
+    weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
+    weeklyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
+    dfUpdateHighlights = DFCleanup(pd.read_csv(weeklyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
+    dfNewHighlights = DFCleanup(pd.read_csv(weeklyNewReportFilepath), ShortcutTypeList, reportDir + 'new')
+    highlightDate = str(time.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
+else:    
+    monthlyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
+    monthlyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
+    dfUpdateHighlights = DFCleanup(pd.read_csv(monthlyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
+    dfNewHighlights = DFCleanup(pd.read_csv(monthlyNewReportFilepath), ShortcutTypeList, reportDir + 'new')
+    highlightDate = str(time.strftime("%B %Y")) 
+
 dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')
-highlightDate = str(time.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
-#highlightFileDate = str(time.strftime("%d%m%Y"))
-highlightFileDate = str(time.strftime("%#d %B %Y"))
-highlightType = 'weekly'
 
 for PA in AllPAs:
-    if PA not in MonthlyPAs:
-        XMLGenerationWeekly(PA, highlightDate, highlightFileDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
+    if highlightType == 'weekly':
+        if PA not in MonthlyPAs:
+            XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
     else:
-        print(PA, 'monthly highlight')
+        if PA in MonthlyPAs:
+            XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
     #wait = input("PAUSED...when ready press enter")
 
 print('Finished')
