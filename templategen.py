@@ -194,7 +194,7 @@ for PA in AllPAs:
     if PA not in MonthlyPAs:
         highlightDate = str(nextThursday.strftime("%#d %B %Y"))
     else:
-        highlightDate = str(lastWorkingDayOfMonth.strftime("%#d %B %Y"))
+        highlightDate = str(lastWorkingDayOfMonth.strftime("%B %Y"))
         TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
 
     #TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
