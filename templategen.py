@@ -72,9 +72,9 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
         print('Problem loading previous xml for: ' + constantPA)
 
 
-    if PA == 'Life Sciences': PA = 'Life Sciences and Pharmaceuticals'
-    if PA == 'Share Incentives': PA = 'Share Schemes'
-    if PA == 'Insurance and Reinsurance': PA = 'Insurance'
+    #if PA == 'Life Sciences': PA = 'Life Sciences and Pharmaceuticals'
+    #if PA == 'Share Incentives': PA = 'Share Schemes'
+    #if PA == 'Insurance and Reinsurance': PA = 'Insurance'
     khdoc = etree.Element('{%s}document' % NSMAP['kh'], nsmap=NSMAP)
     khbody = etree.SubElement(khdoc, '{%s}body' % NSMAP['kh'])
     
@@ -114,9 +114,9 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
 
     tree = etree.ElementTree(khdoc)
     if constantPA not in MonthlyPAs:
-        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights ' + highlightDate + ' test.xml'
+        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights template ' + highlightDate + ' test.xml'
     else:
-        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Monthly highlights ' + highlightDate + ' test.xml'
+        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Monthly highlights template ' + highlightDate + ' test.xml'
     tree.write(xmlfilepath,encoding='utf-8')
 
     f = open(xmlfilepath,'r', encoding='utf-8')
@@ -191,11 +191,12 @@ NewsAlertSection = HarvestTemplateSection(templateFilepath, 'Daily and weekly ne
 #print(NewsAlertSection)
 
 for PA in AllPAs:    
-    if PA not in MonthlyPAs:
+    if PA not in MonthlyPAs: #i.e. weekly
         highlightDate = str(nextThursday.strftime("%#d %B %Y"))
+        TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
     else:
         highlightDate = str(lastWorkingDayOfMonth.strftime("%B %Y"))
-        TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
+        #TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
 
     #TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
     #wait = input("PAUSED...when ready press enter")

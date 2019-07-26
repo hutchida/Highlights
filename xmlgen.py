@@ -286,8 +286,8 @@ reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Update
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
 #outputDir = 'xml\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 #XML generation for all PAs
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance and Reinsurance', 'IP', 'Life Sciences', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Incentives', 'Tax', 'TMT', 'Wills and Probate']    

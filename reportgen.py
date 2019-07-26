@@ -78,6 +78,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
 
     for index, row in df.iterrows():
         DocID = df.iloc[i,0]
+        DocTitle = df.DocTitle.iloc[i]
         masterPA = df.iloc[i,4]
         masterContentType = df.iloc[i,1]
         listofpas = [masterPA]
@@ -93,7 +94,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
                     ContentItemType = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'ContentItemType'].iloc[x])
                     PageType = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'PageType'].iloc[x])
                     Subtopic = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'TopicTreeLevel2'].iloc[x]) + ' > ' + str(df1.loc[df1['OriginalContentItemId'] == DocID, 'TopicTreeLevel3'].iloc[x])
-                    DocTitle = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'Label'].iloc[x])
+                    #DocTitle = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'Label'].iloc[x])
                     
                     OriginalContentItemId = int(DocID)
                                    
@@ -118,7 +119,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
                             ContentItemType = 'SubtopicShortcut'
                             PageType = str(dfshortcuts.loc[dfshortcuts['id'] == DocID, 'PageType'].iloc[x])
                             Subtopic = str(dfshortcuts.loc[dfshortcuts['id'] == DocID, 'TopicTreeLevel2'].iloc[x]) + ' > ' + str(dfshortcuts.loc[dfshortcuts['id'] == DocID, 'TopicTreeLevel3'].iloc[x])
-                            DocTitle = str(dfshortcuts.loc[dfshortcuts['id'] == DocID, 'Label'].iloc[x])
+                            #DocTitle = str(dfshortcuts.loc[dfshortcuts['id'] == DocID, 'Label'].iloc[x])
                             OriginalContentItemId = int(DocID)
                             DocID2 = '0'
                             UR = str(df1.loc[df1['id'] == DocID, 'UnderReview'].iloc[0])
@@ -140,7 +141,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
                             ContentItemType = 'SubtopicShortcutOfShortcut'
                             PageType = str(dfshortcuts.loc[dfshortcuts['OriginalContentItemId'] == DocID, 'PageType'].iloc[x])
                             Subtopic = str(dfshortcuts.loc[dfshortcuts['OriginalContentItemId'] == DocID, 'TopicTreeLevel2'].iloc[x]) + ' > ' + str(dfshortcuts.loc[dfshortcuts['OriginalContentItemId'] == DocID, 'TopicTreeLevel3'].iloc[x])
-                            DocTitle = str(dfshortcuts.loc[dfshortcuts['OriginalContentItemId'] == DocID, 'Label'].iloc[x])
+                            #DocTitle = str(dfshortcuts.loc[dfshortcuts['OriginalContentItemId'] == DocID, 'Label'].iloc[x])
                             OriginalContentItemId = int(DocID)
                             DocID2 = str(dfshortcuts.loc[dfshortcuts['OriginalContentItemId'] == DocID, 'id'].iloc[x])
                             UR = str(df1.loc[df1['id'] == DocID, 'UnderReview'].iloc[0])
@@ -190,14 +191,15 @@ else: reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and 
 
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
-globalmetricsDir = '\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER_withShortcut_AdHoc\\'
+#globalmetricsDir = '\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER_withShortcut_AdHoc\\'
+globalmetricsDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER_Shortcuts\\'
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
 
 aicerFilename = FindMostRecentFile(aicerDir, '*AICER*.csv')
 aicerFilename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',aicerFilename).group(1)
 print('Loading the most recent AICER report: ' + aicerFilename)
-aicershortcutsFilename = FindMostRecentFile(globalmetricsDir, 'AllContentItemsExportWithShortCutNodeInfo_*.csv')
+aicershortcutsFilename = FindMostRecentFile(globalmetricsDir, 'AllContentItemsExportWithShortCutNodeInfo*.csv')
 print('Loading the most recent AICER Shortcuts report: ' + aicershortcutsFilename)
 #filter
 dfaicer = pd.read_csv(aicerDir + aicerFilename, encoding='utf-8', low_memory=False) #Load csv file into dataframe
