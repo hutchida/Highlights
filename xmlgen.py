@@ -285,6 +285,7 @@ reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Update
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
+    
 #outputDir = 'xml\\Practice Areas\\'
 outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
 #outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
