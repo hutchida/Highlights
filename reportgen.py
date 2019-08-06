@@ -164,6 +164,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
     if updatenewtype == 'new':
         columnsTitles = ['DocID', 'OriginalContentItemId', 'ContentItemType', 'OriginalContentItemType', 'PageType', 'PA', 'OriginalContentItemPA', 'Subtopic', 'DocTitle', 'DateFirstPublished', 'UnderReview']
     
+    #reorder columns by list of columnTitles
     df = df.reindex(columns=columnsTitles)
 
     df.to_csv(reportDir + reportFilename, sep=',',index=False, encoding='utf-8')

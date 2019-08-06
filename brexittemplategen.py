@@ -1,4 +1,4 @@
-#Template generator for the weekly and monthly highlights
+#Brexit template generator for the weekly highlights
 #Developed by Daniel Hutchings
 
 import csv
@@ -20,26 +20,8 @@ def FindNextWeekday(givendate, weekday):
     dayshift = (weekday - givendate.weekday()) % 7
     return givendate + datetime.timedelta(days=dayshift)
 
-def FindLastWorkingDayOfMonth(givendate):
-    offset = BMonthEnd()
-    givendate += datetime.timedelta(days=3)
-    lastday = offset.rollforward(givendate)
-    return lastday
-
-def FindLastFridayOfMonth(givendate, weekday):
-    lastday = max(week[-3] for week in calendar.monthcalendar(givendate.year, givendate.month))
-    if givendate.day == lastday:
-        givendate += datetime.timedelta(days=7)
-        lastday = max(week[-3] for week in calendar.monthcalendar(givendate.year, givendate.month))
     
-    lastday = datetime.date(givendate.year, givendate.month, lastday)
-    return lastday
-
-    #dayshift = (weekday - givendate.weekday()) % 7
-    #return givendate + datetime.timedelta(days=dayshift)
-    
-    
-def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSection, NSMAP):    
+def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSection, HeadlinesSection, LegislationSection, SIsSection, NSMAP):    
     constantPA = PA        
     #PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*' + constantPA + ' Weekly highlights *.xml')
     PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*.xml')
@@ -81,19 +63,53 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
     khdoctitle = etree.SubElement(khbody, '{%s}document-title' % NSMAP['kh'])
     khdoctitle.text = PA + ' [weekly/monthly] highlights—[dd Month yyyy]'
     khminisummary = etree.SubElement(khbody, '{%s}mini-summary' % NSMAP['kh'])
-    khminisummary.text = "This [week's/month's] edition of [PA] [weekly/monthly] highlights includes:"
+    khminisummary.text = "These Brexit highlights bring you a summary of the latest Brexit news and legislation updates from across a range of LexisNexis® practice areas."
+    #Intro
+    corepara = etree.SubElement(khbody, '{%s}para' % NSMAP['core'])
+    corepara.text = 'For guidance on keeping up to date, including details of how to access the latest Brexit news updates and analysis, plus instructions for setting up daily/weekly alerts via email and RSS, see: '
+    lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
+    lncicite.set('normcite', 'urn:editpractgfaq:A0F1E667-F841-42F6-9657-00BCA2A4AB03')
+    lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
+    lncicontent.text = 'How do I sign up for Brexit alerts?'
 
-    #News
+    #Headline section from Public Law highlights
+    try: khbody.append(HeadlinesSection)
+    except: print('No Brexit headlines section found in Public Law...')
+
+    #Legislation section from Public Law highlights
+    try: khbody.append(LegislationSection)
+    except: print('No Brexit legislation section found in Public Law...')
+
+    #SIs section from Public Law highlights
+    try: khbody.append(SIsSection)
+    except: print('No Brexit SIs section found in Public Law...')
+
+    #Editor's picks
     trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
     coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
-    coretitle.text = '[Topic provided]'
-    trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
-    coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
-    coretitle.text = '[News analysis name]'
-    corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-    corepara.text = '[Mini-summary]'
-    corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-    corepara.text = 'See News Analysis: [XML ref for News Analysis].'
+    coretitle.text = "Editor's picks—the practice area/sector view"    
+    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    corepara.text = 'This section contains key Brexit news hand-picked by LexisPSL lawyers from their own practice areas.'
+
+    for PA in AllPAs:        
+        PAFilepath = FindMostRecentFile(outputDir + PA + '\\', '*.xml')
+        PABrexitSection = HarvestTemplateSection(PAFilepath, 'Brexit', NSMAP)
+        if PABrexitSection != None: 
+            trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
+            coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
+            coretitle.text = PA
+            try: 
+                trsecsub1.append(PABrexitSection)
+                print('Brexit section found in ' + PA)
+            except: print('No Brexit section found in ' + PA)
+            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+            corepara.text = 'For further updates from ' + PA + ', see: '
+            lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
+            lncicite.set('normcite', 'urn:editpractgfaq:A0F1E667-F841-42F6-9657-00BCA2A4AB03')
+            lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
+            lncicontent.text = PA + ' weekly highlights—Overview'
+
+
         
     #Daily and weekly news alerts    
     try: khbody.append(NewsAlertSection)
@@ -113,10 +129,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
 
 
     tree = etree.ElementTree(khdoc)
-    if constantPA not in MonthlyPAs:
-        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights template ' + highlightDate + ' test.xml'
-    else:
-        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Monthly highlights template ' + highlightDate + ' test.xml'
+    xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights template ' + highlightDate + ' test.xml'
     tree.write(xmlfilepath,encoding='utf-8')
 
     f = open(xmlfilepath,'r', encoding='utf-8')
@@ -162,46 +175,32 @@ def HarvestTemplateSection(templateFilepath, searchterm, NSMAP):
         return 'section not found'
 
 #main script
-print("Template auto-generation for highlights...\n\n")
+print("Template auto-generation for highlights...\n")
 templateFilepath = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Templates\\All Highlights Template.xml'
-#outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
 #outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
-
-NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
-    
+PublicLawFilepath = FindMostRecentFile(outputDir + 'Public Law\\', '*.xml')
+print('Most recent Public Law highlight doc to harvest: \n' + PublicLawFilepath)
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 
-try:
-    highlightType = sys.argv[1] #taken from command line
-except:
-    highlightType = 'weekly'
-
+NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
+highlightType = 'weekly'
 givendate = datetime.datetime.today()
 #givendate = datetime.date(2019, 12, 31)
 nextThursday = FindNextWeekday(givendate, 3) # 3 is thursday
-lastWorkingDayOfMonth = FindLastWorkingDayOfMonth(givendate)
-
 
 NewsAlertSection = HarvestTemplateSection(templateFilepath, 'Daily and weekly news alerts', NSMAP)
-#print(NewsAlertSection)
+HeadlinesSection = HarvestTemplateSection(PublicLawFilepath, 'Brexit headlines', NSMAP)
+LegislationSection = HarvestTemplateSection(PublicLawFilepath, 'Brexit legislation', NSMAP)
+SIsSection = HarvestTemplateSection(PublicLawFilepath, 'Brexit SIs', NSMAP)
+         
+print('Generating Brexit weekly templates for the coming Thursday: ', str(nextThursday.strftime("%#d %B %Y"))) #the hash character turns off the leading zero in the day
+PA = 'Brexit'
+highlightDate = str(nextThursday.strftime("%#d %B %Y"))
+TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, HeadlinesSection, LegislationSection, SIsSection, NSMAP)
 
-for PA in AllPAs:    
-    if highlightType == "weekly":
-        if PA not in MonthlyPAs: #i.e. weekly           
-            print('Generating weekly templates for the coming Thursday: ', str(nextThursday.strftime("%#d %B %Y"))) #the hash character turns off the leading zero in the day
-            highlightDate = str(nextThursday.strftime("%#d %B %Y"))
-            TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
-            print(PA)
-    else:
-        if PA in MonthlyPAs: #i.e. monthly
-            print('Generating monthly templates for the last working day of the month: ', str(lastWorkingDayOfMonth.strftime("%#d %B %Y")))
-            highlightDate = str(lastWorkingDayOfMonth.strftime("%B %Y"))
-            TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
-            print(PA)
-
-    #TemplateGeneration(PA, highlightDate, highlightType, outputDir, NewsAlertSection, NSMAP)
-    #wait = input("PAUSED...when ready press enter")
+#wait = input("PAUSED...when ready press enter")
 print('Finished')
