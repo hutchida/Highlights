@@ -295,11 +295,13 @@ reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
 #reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 PublicLawFilepath = FindMostRecentFile(outputDir + 'Public Law\\', '*.xml')
-BrexitTemplateFilepath = ('\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\Brexit\\Brexit highlights template.xml')
+#BrexitTemplateFilepath = ('\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\Brexit\\Brexit highlights template.xml')
+BrexitTemplateFilepath = FindMostRecentFile(outputDir + 'Brexit\\', '*.xml')
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
 
 
 print('Most recent Public Law highlight doc to harvest: \n' + PublicLawFilepath)
+print('Most recent Brexit template  to harvest: \n' + BrexitTemplateFilepath)
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
