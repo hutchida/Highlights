@@ -103,14 +103,27 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
         #print(PA)
         PAFilepath = FindMostRecentFile(outputDir + PA + '\\', '*.xml')
         PABrexitSection = HarvestTemplateSection(PAFilepath, 'Brexit', NSMAP)
+        
         if PABrexitSection != None: 
             trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
             coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
             coretitle.text = PA
-            try: 
-                trsecsub1.append(PABrexitSection)
-                print('Brexit section found in ' + PA)
-            except: print('No Brexit section found in ' + PA)
+            print('Brexit section found in ' + PA)
+            #print(PABrexitSection)
+            PASecSub1s = PABrexitSection.findall('.//tr:secsub1', namespaces=NSMAP)            
+            for PASecSub1 in PASecSub1s:
+                PASecSub1Title = PASecSub1.find('{%s}title' % NSMAP['core'])
+                print(PASecSub1Title.text)
+                PASecSub1Para = PASecSub1.find('{%s}para' % NSMAP['core'])
+                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                coreparabold = etree.SubElement(corepara, '{%s}emph' % NSMAP['core'])                    
+                coreparabold.set('typestyle', 'bf')
+                coreparabold.text = PASecSub1Title.text                   
+                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                corepara.text = PASecSub1Para.text
+
+
+            
             corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
             corepara.text = 'For further updates from ' + PA + ', see: '
             lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
