@@ -153,8 +153,75 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
 
         
     #Links section  
-    try: khbody.append(LinksSection)
-    except: print('No links section found...')
+    #try: khbody.append(LinksSection)
+    #except: print('No links section found...')
+
+    BrexitLinkTitle = LinksSection.find('.//core:title', namespaces=NSMAP)       
+    BrexitLinksPara = LinksSection.find('.//core:para', namespaces=NSMAP)   
+    trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+    coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+    coretitle.text = BrexitLinkTitle.text
+    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    corepara.text = BrexitLinksPara.text
+    corelist = etree.SubElement(trsecmain, '{%s}list' % NSMAP['core'])
+    corelist.set('type', 'bullet')
+
+    BrexitLinks = LinksSection.findall('.//core:listitem', namespaces=NSMAP)       
+    for BrexitLink in BrexitLinks:             
+        corelist.append(BrexitLink)
+
+    #Brexit new or updated docs, i.e. Links section
+    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    corepara.text = 'The following new Practice Notes on Brexit have also been recommended by LexisPSL lawyers:'
+
+    weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
+    print('Latest weeklyNewReportFilepath:' + weeklyNewReportFilepath)
+    dfNewHighlights = DFCleanup(pd.read_csv(weeklyNewReportFilepath), ['SubtopicShortcut', 'Shortcut', 'SubtopicShortcutOfShortcut'], reportDir + 'new')
+    
+    dfNew = dfNewHighlights[dfNewHighlights.ContentItemType != 'QandAs'] 
+    dfNew = dfNew[dfNew["DocTitle"].str.contains("Brexit", case=False)]
+    dfNew = dfNew.sort_values(['DocTitle'], ascending = True)
+    newHighlightCount = len(dfNew)
+    print(newHighlightCount, 'new Brexit related docs')     
+    if newHighlightCount > 0:     
+        dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')        
+        for x in range(0,newHighlightCount):               
+            DocID = dfNew.DocID.iloc[x]     
+            DocTitle = dfNew.DocTitle.iloc[x]
+            ContentType = dfNew.ContentItemType.iloc[x]
+            OriginalPA = dfNew.OriginalContentItemPA.iloc[x]
+            UnderReview = dfNew.UnderReview.iloc[x]
+            dpsi = dfdpsi.loc[(dfdpsi['ContentType'] == ContentType) & (dfdpsi['PA'] == OriginalPA), 'DPSI'].item() #filters dataframe by contenttype and PA then tries to extract the only value under the column of DPSI
+            #pguidlookup = pguidlistDir + dpsi + '.xml'
+            try:
+                pguidlookupdom = etree.parse(pguidlistDir + dpsi + '.xml')
+                #print(DocID, DocTitle, ContentType, dpsi, pguidlookup)
+                tag = pguidlookupdom.find(".//document[@database-id='" + str(DocID) + "']")
+                try: pguid = tag.get('pguid')    
+                except AttributeError: 
+                    pguid = 'notfound'
+                    print('Not found on pguid look up list: ' + str(DocID) + str(DocTitle))         
+                #print(DocID, DocTitle, ContentType, dpsi, pguidlookup, pguid)              
+            except: pguid = 'notfound'
+
+            dpsidocID = str(DocID)
+            doctitle = str(DocTitle)
+            
+            corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+            lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
+            lncicite.set('normcite', pguid)
+            lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
+            lncicontent.text = doctitle
+            if UnderReview == True:
+                comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
+                corepara.append(comment) #add comment after link
+            trsecmain.append(corepara)
+    else:
+        comment = etree.Comment("No Brexit related doc found")
+        trsecmain.append(comment) 
+
+
+
 
     #Brexit QAs
     weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
