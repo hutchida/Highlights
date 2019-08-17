@@ -81,16 +81,82 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
     lncicontent.text = 'How do I sign up for Brexit alerts?'
 
     #Headline section from Public Law highlights
-    try: khbody.append(HeadlinesSection)
+    try: 
+        Headlines = HeadlinesSection.findall('.//tr:secsub1', namespaces=NSMAP)  
+        trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+        coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+        coretitle.text = 'General Brexit headlines'
+        corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+        corepara.text = 'This section contains key overarching Brexit news headlines.'
+        for Headline in Headlines:
+            HeadlineTitle = Headline.find('{%s}title' % NSMAP['core'])
+            HeadlinePara = Headline.find('{%s}para' % NSMAP['core'])
+            trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
+            coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
+            coretitle.text = HeadlineTitle.text
+            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+            corepara.text = HeadlinePara.text
     except: print('No Brexit headlines section found in Public Law...')
 
+
+
     #Legislation section from Public Law highlights
-    try: khbody.append(LegislationSection)
+    try: 
+        Legs = LegislationSection.findall('.//tr:secsub1', namespaces=NSMAP)  
+        trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+        coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+        coretitle.text = 'Brexit legislation updates'
+        corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+        corepara.text = 'This section contains Brexit news headlines relating to Brexit-related primary legislation and legislative preparation for Brexit generally.'
+        for Leg in Legs:
+            LegTitle = Leg.find('{%s}title' % NSMAP['core'])
+            LegPara = Leg.find('{%s}para' % NSMAP['core'])
+            trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
+            coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
+            coretitle.text = LegTitle.text
+            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+            corepara.text = LegPara.text
     except: print('No Brexit legislation section found in Public Law...')
 
+
     #SIs section from Public Law highlights
-    try: khbody.append(SIsSection)
+    try: 
+        SIs = SIsSection.findall('.//tr:secsub1', namespaces=NSMAP)  
+        trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+        coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+        coretitle.text = 'Brexit SIs and sifting updates'
+        corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+        corepara.text = 'This section contains updates on the latest final and draft Brexit SIs laid in Parliament, plus updates on proposed negative Brexit SIs laid for sifting.'
+        for SI in SIs:
+            SITitle = SI.find('{%s}title' % NSMAP['core'])
+            SIPara = SI.find('{%s}para' % NSMAP['core'])
+            trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
+            coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
+            coretitle.text = SITitle.text
+            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+            corepara.text = SIPara.text
     except: print('No Brexit SIs section found in Public Law...')
+
+    #Made Brexit SIs laid in Parliament
+    trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+    coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+    coretitle.text = 'Made Brexit SIs laid in Parliament'
+    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    corepara.text = 'xxx'
+
+    #Draft Brexit SIs laid in Parliament
+    trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+    coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+    coretitle.text = 'Draft Brexit SIs laid in Parliament'
+    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    corepara.text = 'xxx'
+
+    #Draft Brexit SIs laid for sifting and sifting committee recommendations
+    trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+    coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+    coretitle.text = 'Draft Brexit SIs laid for sifting and sifting committee recommendations'
+    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    corepara.text = 'xxx'
 
     #Editor's picks
     trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])

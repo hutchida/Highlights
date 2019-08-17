@@ -196,6 +196,7 @@ aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
 globalmetricsDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER_Shortcuts\\'
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
+logfilepath = reportDir + 'log.txt'
 
 aicerFilename = FindMostRecentFile(aicerDir, '*AICER*.csv')
 aicerFilename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',aicerFilename).group(1)
