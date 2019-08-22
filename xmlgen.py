@@ -258,6 +258,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
     newdata = filedata  
     newdata = newdata.replace("<kh:document ","""<?xml version="1.0" encoding="UTF-8"?><!--Arbortext, Inc., 1988-2013, v.4002--><!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd"><?Pub EntList mdash reg #8364 #176 #169 #8230 #10003 #x2610 #x2611 #x2612 #x2613?><?Pub Inc?><kh:document """)#<kh:document xmlns:core="http://www.lexisnexis.com/namespace/sslrp/core" xmlns:fn="http://www.lexisnexis.com/namespace/sslrp/fn" xmlns:header="http://www.lexisnexis.com/namespace/uk/header" xmlns:kh="http://www.lexisnexis.com/namespace/uk/kh" xmlns:lnb="http://www.lexisnexis.com/namespace/uk/lnb" xmlns:lnci="http://www.lexisnexis.com/namespace/common/lnci" xmlns:tr="http://www.lexisnexis.com/namespace/sslrp/tr">""")
     newdata = newdata.replace("[PA]", constantPA)
+    newdata = newdata.replace("Life Sciences and Pharmaceuticals", "Life Sciences")
     newdata = newdata.replace("[weekly/monthly]", highlightType)
     newdata = newdata.replace("[dd Month yyyy]", highlightDate)
     if highlightType == 'weekly':
