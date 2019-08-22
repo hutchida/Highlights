@@ -29,6 +29,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
     if highlightType == 'monthly': timeago = (datetime.datetime.now().date() - datetime.timedelta(32))
     daterange = timeago.strftime('%b %d') + ' - ' + time.strftime('%b %d, %Y')
 
+    
     df = df[df.TopicTreeLevel1.isin(['Employment', 'Personal Injury', 'Dispute Resolution', 'Family', 'Property', 'Commercial', 'Information Law', 'Planning', 'Property Disputes', 'IP', 'Construction', 'Local Government', 'TMT', 'Arbitration', 'Wills and Probate', 'Private Client', 'Tax', 'In-House Advisor', 'Corporate', 'Restructuring and Insolvency', 'Environment', 'Practice Compliance', 'Public Law', 'Corporate Crime', 'Financial Services', 'Insurance', 'Energy', 'Pensions', 'Banking and Finance', 'Immigration', 'Competition', 'News Analysis', 'Life Sciences and Pharmaceuticals', 'Practice Management', 'Share Schemes', 'Risk and Compliance'])] # These are the relevent PAs we want to keep in the report
     dfshortcuts = dfshortcuts[dfshortcuts.TopicTreeLevel1.isin(['Employment', 'Personal Injury', 'Dispute Resolution', 'Family', 'Property', 'Commercial', 'Information Law', 'Planning', 'Property Disputes', 'IP', 'Construction', 'Local Government', 'TMT', 'Arbitration', 'Wills and Probate', 'Private Client', 'Tax', 'In-House Advisor', 'Corporate', 'Restructuring and Insolvency', 'Environment', 'Practice Compliance', 'Public Law', 'Corporate Crime', 'Financial Services', 'Insurance', 'Energy', 'Pensions', 'Banking and Finance', 'Immigration', 'Competition', 'News Analysis', 'Life Sciences and Pharmaceuticals', 'Practice Management', 'Share Schemes', 'Risk and Compliance'])] # These are the relevent PAs we want to keep in the report
     
@@ -50,8 +51,8 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
     df['DateFirstPublished'] = pd.to_datetime(df['DateFirstPublished'], dayfirst=False) #US date
 
     if updatenewtype == 'updated':
-        df = df[df.MajorUpdateFirstPublished.notnull()]
         df1 = df
+        df = df[df.MajorUpdateFirstPublished.notnull()]
         df = df[df.ContentItemType.isin(['Precedent', 'PracticeNote', 'Checklist'])]
         df = df[df.PageType.isin(['Precedents', 'Practical Guidance', 'Checklists', 'InteractiveFlowchart', 'StaticFlowchart', 'SmartPrecedent'])] # These are the content types to keep in the report
         
@@ -62,8 +63,8 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
         reportFilename = re.search('([^\.]*)\.csv',filename).group(1) + "_UKPSL_" + highlightType + "_HL_updated_" + date + ".csv"
    
     if updatenewtype == 'new':
-        df = df[df.DateFirstPublished.notnull()]
         df1 = df
+        df = df[df.DateFirstPublished.notnull()]
         df = df[df.ContentItemType.isin(['Precedent', 'PracticeNote', 'Checklist', 'QandAs'])]
         df = df[df.PageType.isin(['Precedents', 'Practical Guidance', 'Checklists', 'Q&As', 'InteractiveFlowchart', 'StaticFlowchart', 'SmartPrecedent'])] # These are the content types to keep in the report
         
@@ -85,10 +86,11 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
     print('Searching for shortcuts...')
     LogOutput("Searching for shortcuts...\n")
     i = 0
-    #df.to_csv(reportDir + 'test-df-' + updatenewtype + '-' + highlightType + '.csv', sep=',',index=False, encoding='utf-8')
+    #df1.to_csv(aicerDir + 'test-df1-' + updatenewtype + '-' + highlightType + '.csv', sep=',',index=False, encoding='utf-8')
 
     for index, row in df.iterrows():
         DocID = df.iloc[i,0]
+        #print(DocID)
         DocTitle = df.DocTitle.iloc[i]
         masterPA = df.iloc[i,4]
         masterContentType = df.iloc[i,1]
@@ -97,9 +99,10 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
         #individual shortcuts
         if any(df1['OriginalContentItemId'] == DocID) == True:
             shortcutcount = len(df1[df1.OriginalContentItemId.isin([DocID])]) #filter by OCI with DocID to find how many shortcuts
+            #print(shortcutcount)
             for x in range(0,shortcutcount):       
                 PA = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'TopicTreeLevel1'].iloc[x])
-     
+                #print(x, PA)
                 if PA not in listofpas:    
                     
                     ContentItemType = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'ContentItemType'].iloc[x])
@@ -110,11 +113,12 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
                     OriginalContentItemId = int(DocID)
                                    
                     DocID2 = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'id'].iloc[x])
+                    #print('DocID2', DocID2)
                     UR = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'UnderReview'].iloc[x])
                     MajorUpdateFirstPublished = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'MajorUpdateFirstPublished'].iloc[x])
                     DateFirstPublished = str(df1.loc[df1['OriginalContentItemId'] == DocID, 'DateFirstPublished'].iloc[x])
                     dictionary_row = {"DocID":DocID2,"ContentItemType":ContentItemType,"OriginalContentItemType":masterContentType,"OriginalContentItemId":OriginalContentItemId,"PageType":PageType,"PA":PA, "OriginalContentItemPA":masterPA,"Subtopic":Subtopic,"DocTitle":DocTitle,"DateFirstPublished":DateFirstPublished,"MajorUpdateFirstPublished":MajorUpdateFirstPublished,"UnderReview":UR}
-                            
+                    #print(dictionary_row)
                     df = df.append(dictionary_row, ignore_index=True)                    
                     listofpas.append(PA)
         
@@ -212,8 +216,10 @@ else: reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and 
 
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
+#aicerDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
 #globalmetricsDir = '\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER_withShortcut_AdHoc\\'
 globalmetricsDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER_Shortcuts\\'
+#globalmetricsDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
 logfilepath = reportDir + 'log.txt'
