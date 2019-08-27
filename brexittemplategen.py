@@ -95,8 +95,9 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
             coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
             coretitle.text = HeadlineTitle.text
             for HeadlinePara in HeadlineParas:                
-                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-                corepara.text = HeadlinePara.text
+                #corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                #corepara.text = HeadlinePara.text
+                trsecsub1.append(HeadlinePara) 
     except: print('No Brexit headlines section found in Public Law...')
 
 
@@ -116,8 +117,9 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
             coretitle.text = LegTitle.text
             LegParas = Leg.findall('{%s}para' % NSMAP['core'])
             for LegPara in LegParas:
-                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-                corepara.text = LegPara.text
+                #corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                #corepara.text = LegPara.text
+                trsecsub1.append(LegPara) 
     except: print('No Brexit legislation section found in Public Law...')
 
 
@@ -136,8 +138,9 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
             coretitle.text = SITitle.text
             SIParas = SI.findall('{%s}para' % NSMAP['core'])
             for SIPara in SIParas:
-                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-                corepara.text = SIPara.text
+                #corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                #corepara.text = SIPara.text
+                trsecsub1.append(SIPara) 
     except: print('No Brexit SIs section found in Public Law...')
 
     #Made Brexit SIs laid in Parliament
@@ -171,68 +174,69 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
     for PA in AllPAs:        
         print(PA)
         PAFilepath = FindMostRecentFile(outputDir + PA + '\\', '*preview.xml')
-        try: PABrexitSection = HarvestTemplateSection(PAFilepath, 'Brexit', NSMAP)
-        except:
-            comment = etree.Comment(PA + ": no highlight doc found")
-            trsecmain.append(comment) 
-        if PA != 'Public Law':
-            if PABrexitSection != None: 
-                PASecSub1 = PABrexitSection.find('.//tr:secsub1', namespaces=NSMAP)   #find the trsecsub1
-                PASecSub1Title = PASecSub1.find('{%s}title' % NSMAP['core']) #find within it the title
-                if PASecSub1Title != None: #check that there is text in the title tags, else skip
-                    if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
-                    trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
-                    coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
-                    coretitle.text = PA
-                    
-                    print('Brexit section found in ' + PA)
-                    #print(PABrexitSection)
-                    PASecSub1s = PABrexitSection.findall('.//tr:secsub1', namespaces=NSMAP)            
-                    for PASecSub1 in PASecSub1s:
-                        PASecSub1Title = PASecSub1.find('{%s}title' % NSMAP['core'])
-                        #print(PASecSub1Title.text)
+        try: 
+            PABrexitSection = HarvestTemplateSection(PAFilepath, 'Brexit', NSMAP)            
+            if PA != 'Public Law':
+                if PABrexitSection != None: 
+                    PASecSub1 = PABrexitSection.find('.//tr:secsub1', namespaces=NSMAP)   #find the trsecsub1
+                    PASecSub1Title = PASecSub1.find('{%s}title' % NSMAP['core']) #find within it the title
+                    if PASecSub1Title != None: #check that there is text in the title tags, else skip
+                        if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
+                        trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
+                        coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
+                        coretitle.text = PA
                         
-                        corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-                        coreparabold = etree.SubElement(corepara, '{%s}emph' % NSMAP['core'])                    
-                        coreparabold.set('typestyle', 'bf')
-                        coreparabold.text = PASecSub1Title.text    
-
-                        PASecSub1Paras = PASecSub1.findall('{%s}para' % NSMAP['core'])
-                        for PASecSub1Para in PASecSub1Paras:
-                            try:
-                                trsecsub1.append(PASecSub1Para) 
-                            except:
-                                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                        print('Brexit section found in ' + PA)
+                        #print(PABrexitSection)
+                        PASecSub1s = PABrexitSection.findall('.//tr:secsub1', namespaces=NSMAP)            
+                        for PASecSub1 in PASecSub1s:
+                            PASecSub1Title = PASecSub1.find('{%s}title' % NSMAP['core'])
+                            #print(PASecSub1Title.text)
                             
-                            #corepara.text = PASecSub1Para.text
-                    corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-                    corepara.text = 'For further updates from ' + PA + ', see: '
-                    lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
-                    lncicite.set('normcite', HighlightsOverviewDict.get(PA))
-                    lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
-                    lncicontent.text = PA + ' weekly highlights—Overview'
+                            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                            coreparabold = etree.SubElement(corepara, '{%s}emph' % NSMAP['core'])                    
+                            coreparabold.set('typestyle', 'bf')
+                            coreparabold.text = PASecSub1Title.text    
+
+                            PASecSub1Paras = PASecSub1.findall('{%s}para' % NSMAP['core'])
+                            for PASecSub1Para in PASecSub1Paras:
+                                try:
+                                    trsecsub1.append(PASecSub1Para) 
+                                except:
+                                    corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                                
+                                #corepara.text = PASecSub1Para.text
+                        corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                        corepara.text = 'For further updates from ' + PA + ', see: '
+                        lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
+                        lncicite.set('normcite', HighlightsOverviewDict.get(PA))
+                        lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
+                        lncicontent.text = PA + ' weekly highlights—Overview'
+                    else:
+                        comment = etree.Comment(PA + ": no Brexit news found")
+                        trsecmain.append(comment) 
                 else:
                     comment = etree.Comment(PA + ": no Brexit news found")
                     trsecmain.append(comment) 
             else:
-                comment = etree.Comment(PA + ": no Brexit news found")
-                trsecmain.append(comment) 
-        else:
-            trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
-            coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
-            coretitle.text = PA
-            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-            coreparabold = etree.SubElement(corepara, '{%s}emph' % NSMAP['core'])                    
-            coreparabold.set('typestyle', 'bf')
-            coreparabold.text = '***insert title here***'                  
-            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-            corepara.text =  '***insert para here***'
-            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-            corepara.text = 'For further updates from ' + PA + ', see: '
-            lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
-            lncicite.set('normcite', HighlightsOverviewDict.get(PA))
-            lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
-            lncicontent.text = PA + ' weekly highlights—Overview'
+                trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
+                coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
+                coretitle.text = PA
+                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                coreparabold = etree.SubElement(corepara, '{%s}emph' % NSMAP['core'])                    
+                coreparabold.set('typestyle', 'bf')
+                coreparabold.text = '***insert title here***'                  
+                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                corepara.text =  '***insert para here***'
+                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                corepara.text = 'For further updates from ' + PA + ', see: '
+                lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
+                lncicite.set('normcite', HighlightsOverviewDict.get(PA))
+                lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
+                lncicontent.text = PA + ' weekly highlights—Overview'
+        except:
+            comment = etree.Comment(PA + ": no highlight doc found")
+            trsecmain.append(comment) 
 
         
     #Links section  
