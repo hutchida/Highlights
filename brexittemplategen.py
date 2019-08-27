@@ -90,12 +90,13 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
         corepara.text = 'This section contains key overarching Brexit news headlines.'
         for Headline in Headlines:
             HeadlineTitle = Headline.find('{%s}title' % NSMAP['core'])
-            HeadlinePara = Headline.find('{%s}para' % NSMAP['core'])
+            HeadlineParas = Headline.findall('{%s}para' % NSMAP['core'])
             trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
             coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
             coretitle.text = HeadlineTitle.text
-            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-            corepara.text = HeadlinePara.text
+            for HeadlinePara in HeadlineParas:                
+                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                corepara.text = HeadlinePara.text
     except: print('No Brexit headlines section found in Public Law...')
 
 
@@ -110,12 +111,13 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
         corepara.text = 'This section contains Brexit news headlines relating to Brexit-related primary legislation and legislative preparation for Brexit generally.'
         for Leg in Legs:
             LegTitle = Leg.find('{%s}title' % NSMAP['core'])
-            LegPara = Leg.find('{%s}para' % NSMAP['core'])
             trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
             coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
             coretitle.text = LegTitle.text
-            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-            corepara.text = LegPara.text
+            LegParas = Leg.findall('{%s}para' % NSMAP['core'])
+            for LegPara in LegParas:
+                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                corepara.text = LegPara.text
     except: print('No Brexit legislation section found in Public Law...')
 
 
@@ -128,35 +130,36 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
         corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
         corepara.text = 'This section contains updates on the latest final and draft Brexit SIs laid in Parliament, plus updates on proposed negative Brexit SIs laid for sifting.'
         for SI in SIs:
-            SITitle = SI.find('{%s}title' % NSMAP['core'])
-            SIPara = SI.find('{%s}para' % NSMAP['core'])
+            SITitle = SI.find('{%s}title' % NSMAP['core'])            
             trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
             coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
             coretitle.text = SITitle.text
-            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-            corepara.text = SIPara.text
+            SIParas = SI.findall('{%s}para' % NSMAP['core'])
+            for SIPara in SIParas:
+                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                corepara.text = SIPara.text
     except: print('No Brexit SIs section found in Public Law...')
 
     #Made Brexit SIs laid in Parliament
     trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
     coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
     coretitle.text = 'Made Brexit SIs laid in Parliament'
-    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
-    corepara.text = 'xxx'
+    #corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    #corepara.text = 'xxx'
 
     #Draft Brexit SIs laid in Parliament
     trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
     coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
     coretitle.text = 'Draft Brexit SIs laid in Parliament'
-    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
-    corepara.text = 'xxx'
+    #corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    #corepara.text = 'xxx'
 
     #Draft Brexit SIs laid for sifting and sifting committee recommendations
     trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
     coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
     coretitle.text = 'Draft Brexit SIs laid for sifting and sifting committee recommendations'
-    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
-    corepara.text = 'xxx'
+    #corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    #corepara.text = 'xxx'
 
     #Editor's picks
     trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
@@ -187,16 +190,19 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
                     PASecSub1s = PABrexitSection.findall('.//tr:secsub1', namespaces=NSMAP)            
                     for PASecSub1 in PASecSub1s:
                         PASecSub1Title = PASecSub1.find('{%s}title' % NSMAP['core'])
-                        print(PASecSub1Title.text)
-                        PASecSub1Para = PASecSub1.find('{%s}para' % NSMAP['core'])
+                        #print(PASecSub1Title.text)
+                        
                         corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
                         coreparabold = etree.SubElement(corepara, '{%s}emph' % NSMAP['core'])                    
                         coreparabold.set('typestyle', 'bf')
-                        coreparabold.text = PASecSub1Title.text                   
-                        try:
-                            trsecsub1.append(PASecSub1Para) 
-                        except:
-                            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                        coreparabold.text = PASecSub1Title.text    
+
+                        PASecSub1Paras = PASecSub1.findall('{%s}para' % NSMAP['core'])
+                        for PASecSub1Para in PASecSub1Paras:
+                            try:
+                                trsecsub1.append(PASecSub1Para) 
+                            except:
+                                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
                             
                             #corepara.text = PASecSub1Para.text
                     corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
@@ -240,12 +246,12 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
     coretitle.text = BrexitLinkTitle.text
     corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
     corepara.text = BrexitLinksPara.text
-    corelist = etree.SubElement(trsecmain, '{%s}list' % NSMAP['core'])
-    corelist.set('type', 'bullet')
+    corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
+    #corelist.set('type', 'bullet')
 
     BrexitLinks = LinksSection.findall('.//core:listitem', namespaces=NSMAP)       
     for BrexitLink in BrexitLinks:             
-        corelist.append(BrexitLink)
+        corepara.append(BrexitLink)
 
     #Brexit new or updated docs, i.e. Links section
     weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
@@ -548,12 +554,15 @@ NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http:/
 highlightType = 'weekly'
 givendate = datetime.datetime.today()
 #givendate = datetime.date(2019, 12, 31)
-nextThursday = FindNextWeekday(givendate, 3) # 3 is thursday
+#nextThursday = FindNextWeekday(givendate, 3) # 3 is thursday
 
 
-print('Generating Brexit weekly templates for the coming Thursday: ', str(nextThursday.strftime("%#d %B %Y"))) #the hash character turns off the leading zero in the day
+
+#highlightDate = str(nextThursday.strftime("%#d %B %Y"))
+highlightDate = str(givendate.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
+print('Generating Brexit weekly templates for today: ', highlightDate) 
 PA = 'Brexit'
-highlightDate = str(nextThursday.strftime("%#d %B %Y"))
+wait = input("PAUSED...when ready press enter")
 TemplateGeneration(PA, highlightDate, highlightType, outputDir, NSMAP)
 
 #wait = input("PAUSED...when ready press enter")
