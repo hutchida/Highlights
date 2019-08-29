@@ -39,13 +39,16 @@ def FindLastFridayOfMonth(givendate, weekday):
     #return givendate + datetime.timedelta(days=dayshift)
     
     
-def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSection, NSMAP):    
+def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSection, NSMAP):  
+
     constantPA = PA        
     #PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*' + constantPA + ' Weekly highlights *.xml')
     PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*.xml')
     print('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
     #extract info from last highlights' doc
     
+    if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
+        
     try:
         tree = etree.parse(PrevHighlightsFilepath)
         root = tree.getroot()
@@ -72,7 +75,6 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
         print('Problem loading previous xml for: ' + constantPA)
 
 
-    #if PA == 'Life Sciences': PA = 'Life Sciences and Pharmaceuticals'
     #if PA == 'Share Incentives': PA = 'Share Schemes'
     #if PA == 'Insurance and Reinsurance': PA = 'Insurance'
     khdoc = etree.Element('{%s}document' % NSMAP['kh'], nsmap=NSMAP)
@@ -114,9 +116,9 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
 
     tree = etree.ElementTree(khdoc)
     if constantPA not in MonthlyPAs:
-        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights template ' + highlightDate + ' test.xml'
+        xmlfilepath = outputDir + constantPA + '\\' + PA + ' Weekly highlights template ' + highlightDate + ' test.xml'
     else:
-        xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Monthly highlights template ' + highlightDate + ' test.xml'
+        xmlfilepath = outputDir + constantPA + '\\' + PA + ' Monthly highlights template ' + highlightDate + ' test.xml'
     tree.write(xmlfilepath,encoding='utf-8')
 
     f = open(xmlfilepath,'r', encoding='utf-8')
@@ -124,7 +126,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
     f.close()
     newdata = filedata  
     newdata = newdata.replace("<kh:document ","""<?xml version="1.0" encoding="UTF-8"?><!--Arbortext, Inc., 1988-2013, v.4002--><!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd"><?Pub EntList mdash reg #8364 #176 #169 #8230 #10003 #x2610 #x2611 #x2612 #x2613?><?Pub Inc?><kh:document """)#<kh:document xmlns:core="http://www.lexisnexis.com/namespace/sslrp/core" xmlns:fn="http://www.lexisnexis.com/namespace/sslrp/fn" xmlns:header="http://www.lexisnexis.com/namespace/uk/header" xmlns:kh="http://www.lexisnexis.com/namespace/uk/kh" xmlns:lnb="http://www.lexisnexis.com/namespace/uk/lnb" xmlns:lnci="http://www.lexisnexis.com/namespace/common/lnci" xmlns:tr="http://www.lexisnexis.com/namespace/sslrp/tr">""")
-    newdata = newdata.replace("[PA]", constantPA)
+    newdata = newdata.replace("[PA]", PA)
     newdata = newdata.replace("[weekly/monthly]", highlightType)
     newdata = newdata.replace("[dd Month yyyy]", highlightDate)
     if highlightType == 'weekly':
