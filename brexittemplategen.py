@@ -255,7 +255,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
 
     BrexitLinks = LinksSection.findall('.//core:listitem', namespaces=NSMAP)       
     for BrexitLink in BrexitLinks:             
-        corepara.append(BrexitLink)
+        trsecmain.append(BrexitLink)
 
     #Brexit new or updated docs, i.e. Links section
     weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
@@ -566,7 +566,7 @@ givendate = datetime.datetime.today()
 highlightDate = str(givendate.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
 print('Generating Brexit weekly templates for today: ', highlightDate) 
 PA = 'Brexit'
-wait = input("PAUSED...when ready press enter")
+#wait = input("PAUSED...when ready press enter")
 TemplateGeneration(PA, highlightDate, highlightType, outputDir, NSMAP)
 
 #wait = input("PAUSED...when ready press enter")
