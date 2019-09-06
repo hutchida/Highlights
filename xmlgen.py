@@ -1,9 +1,9 @@
-#AICER updated content log for highlights, loops through all the most recent AICER report and builds a log based on content updated/new in the last week/month
-#last updated 16.05.19
+#XML generator for highlights, loops through all entries on the new and updated content lists and creates xml with links to those mentioned documents that can be copied and pasted into the highlights templates
 #Developed by Daniel Hutchings
 
 import csv
 import pandas as pd
+from pandas.tseries.offsets import BMonthEnd
 import glob
 import os
 import fnmatch
@@ -13,8 +13,6 @@ import datetime
 import sys
 import xml.etree.ElementTree as ET
 from lxml import etree
-
-
 
 def DFCleanup(df, ShortcutTypeList, ReportType):
     df1 = pd.DataFrame()
@@ -39,15 +37,6 @@ def DFCleanup(df, ShortcutTypeList, ReportType):
     #df1.to_csv(ReportType + '.csv', sep=',',index=False) 
     return df1
 
-#get rid of namespaces
-def strip_ns_prefix(tree):
-    #xpath query for selecting all element nodes in namespace
-    query = "descendant-or-self::*[namespace-uri()!='']"
-    #for each element returned by the above xpath query...
-    for element in tree.xpath(query):
-        #replace element name with its local name
-        element.tag = etree.QName(element).localname
-    return tree
     
 def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir):
     constantPA = PA        
@@ -280,6 +269,20 @@ def FindMostRecentFile(directory, pattern):
     except: return 'na'
 
 
+def IsLastWorkingDayOfMonth(givendate):
+    offset = BMonthEnd()
+    #givendate += datetime.timedelta(days=3)
+    lastday = offset.rollforward(givendate)
+    if givendate == lastday.date(): return True
+    else: return False 
+
+def IsThursday(givendate):
+    print(givendate.weekday())
+    if givendate.weekday() == 3: return True
+    else: return False
+
+
+
 #Directories
 #reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
 reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
@@ -291,42 +294,46 @@ lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis
 outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
 #outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
-#XML generation for all PAs
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
+ShortcutTypeList = ['SubtopicShortcut', 'Shortcut', 'SubtopicShortcutOfShortcut']
 
-try:
-    highlightType = sys.argv[1] #taken from command line
-except:
-    highlightType = 'weekly'
+givendate = datetime.datetime.today()
+#givendate = datetime.date(2019, 8, 30)
+print(givendate)
+print('Is last working day of the month:' + str(IsLastWorkingDayOfMonth(givendate)))
+print('Is a Thursday:' + str(IsThursday(givendate)))    
+
 
 #main script
-print("XML auto-generation for " + highlightType + " highlights...\n\n")
-
-#Cleanup the highlights list ready for xml generation
-ShortcutTypeList = ['SubtopicShortcut', 'Shortcut', 'SubtopicShortcutOfShortcut']
-if highlightType == "weekly":    
-    weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
-    weeklyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
-    dfUpdateHighlights = DFCleanup(pd.read_csv(weeklyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
-    dfNewHighlights = DFCleanup(pd.read_csv(weeklyNewReportFilepath), ShortcutTypeList, reportDir + 'new')
-    highlightDate = str(time.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
-else:    
+if IsLastWorkingDayOfMonth(givendate) == True:
+    print("XML auto-generation for monthly highlights...\n\n")
     monthlyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     monthlyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     dfUpdateHighlights = DFCleanup(pd.read_csv(monthlyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
     dfNewHighlights = DFCleanup(pd.read_csv(monthlyNewReportFilepath), ShortcutTypeList, reportDir + 'new')
     highlightDate = str(time.strftime("%B %Y")) 
+    dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')
+    for PA in MonthlyPAs:
+        XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
 
-dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')
+else: print('Today is not the last working day of the month...skipping monthly highlight xml generation...')
 
-for PA in AllPAs:
-    if highlightType == 'weekly':
+if IsThursday(givendate) == True:
+    weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
+    weeklyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
+    dfUpdateHighlights = DFCleanup(pd.read_csv(weeklyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
+    dfNewHighlights = DFCleanup(pd.read_csv(weeklyNewReportFilepath), ShortcutTypeList, reportDir + 'new')
+    highlightDate = str(time.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
+    dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')    
+    for PA in AllPAs:
         if PA not in MonthlyPAs:
             XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
-    else:
-        if PA in MonthlyPAs:
-            XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
-    #wait = input("PAUSED...when ready press enter")
+else: print('Today is not a Thursday...skipping weekly highlight xml generation...')
+
+
 
 print('Finished')
+
+
+#wait = input("PAUSED...when ready press enter")
