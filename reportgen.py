@@ -12,18 +12,19 @@ import re
 import time
 import datetime
 import sys
+import shutil
 import xml.etree.ElementTree as ET
 from lxml import etree
 
 
 def LogOutput(message):
     l = open(JCSLogFile,'a')
-    l.write(message)
+    l.write(message + '\n')
     l.close()
 
 def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):    
     print(updatenewtype, highlightType)
-    LogOutput(str(updatenewtype) + " " + str(highlightType) + "\n")
+    LogOutput(str(updatenewtype) + " " + str(highlightType))
     date =  str(time.strftime("%d%m%Y"))
     if highlightType == 'weekly': timeago = (datetime.datetime.now().date() - datetime.timedelta(8)) #the 'date' part of this means it will only provide the date, not the hours, min, sec etc
     if highlightType == 'monthly': timeago = (datetime.datetime.now().date() - datetime.timedelta(32))
@@ -58,7 +59,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
         
         
         print("Grabbing docs that were updated after: " + str(timeago))
-        LogOutput("Grabbing docs that were updated after: " + str(timeago) +"\n")
+        LogOutput("Grabbing docs that were updated after: " + str(timeago))
         df = df[df.MajorUpdateFirstPublished.dt.date > timeago]
         reportFilename = re.search('([^\.]*)\.csv',filename).group(1) + "_UKPSL_" + highlightType + "_HL_updated_" + date + ".csv"
    
@@ -70,7 +71,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
         
         
         print("Grabbing docs that were created after: " + str(timeago))
-        LogOutput("Grabbing docs that were created after: " + str(timeago) + "\n")
+        LogOutput("Grabbing docs that were created after: " + str(timeago))
         df = df[df.DateFirstPublished.dt.date > timeago]
         reportFilename = re.search('([^\.]*)\.csv',filename).group(1) + "_UKPSL_" + highlightType + "_HL_new_" + date + ".csv"
    
@@ -84,7 +85,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
 
     #searching for shortcuts
     print('Searching for shortcuts...')
-    LogOutput("Searching for shortcuts...\n")
+    LogOutput("Searching for shortcuts...")
     i = 0
     #df1.to_csv(aicerDir + 'test-df1-' + updatenewtype + '-' + highlightType + '.csv', sep=',',index=False, encoding='utf-8')
 
@@ -169,7 +170,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
         i=i+1
 
     print('Total found: ' + str(len(df)))
-    LogOutput("Total found: " + str(len(df)) + "\n")
+    LogOutput("Total found: " + str(len(df)))
     #cleanup
     df.OriginalContentItemId = df.OriginalContentItemId.fillna(0) #fill all empty values of this column with zeros
     df.OriginalContentItemId = df.OriginalContentItemId.astype(int) #convert hidden float column to int to remove trailing decimals when exporting to csv
@@ -185,7 +186,7 @@ def Filter(reportDir, filename, df, dfshortcuts, highlightType, updatenewtype):
 
     df.to_csv(reportDir + reportFilename, sep=',',index=False, encoding='utf-8')
     print('Exported to ' + reportDir + reportFilename)
-    LogOutput("Exported to " + str(reportDir) + " " + str(reportFilename) + "\n")
+    LogOutput("Exported to " + str(reportDir) + " " + str(reportFilename))
     return(reportDir + reportFilename)
 
 
@@ -196,24 +197,43 @@ def FindMostRecentFile(directory, pattern):
     return filelist[0]
 
 
-JCSLogFile = r'\\atlas\lexispsl\Highlights\Automatic creation\Scripts\JCSlog.txt'
-l = open(JCSLogFile,'w')
-logdate =  str(time.strftime("%d%m%Y"))
-l.write("Start "+logdate+"\n")
-l.close()
+def ListOfFilesInDirectory(directory, pattern):
+    existingList = []
+    filelist = glob.iglob(os.path.join(directory, pattern)) #builds list of file in a directory based on a pattern
+    for filepath in filelist:
+        existingList.append(filepath)
+
+    return existingList
+
+def Archive(listOfFiles, reportDir):
+    copyList = []
+    archiveDir = reportDir + 'Archive\\'
+
+    #Check archive folder exists
+    if os.path.isdir(archiveDir) == False:
+        os.makedirs(archiveDir)
+
+    for existingFilepath in listOfFiles:
+        print(existingFilepath)
+        directory = re.search('(.*\\\\)[^\.]*\.csv',existingFilepath).group(1)
+        filename = re.search('.*\\\\([^\.]*\.csv)',existingFilepath).group(1)
+        destinationFilepath = directory + 'Archive\\' + filename
+        shutil.copy(existingFilepath, destinationFilepath) #Copy
+        os.remove(existingFilepath) #Delete old file
+        copyList.append('Moved: ' + existingFilepath + ', to: ' + destinationFilepath)
+    return copyList
+
 
 #main script
 env = sys.argv[1] #taken from command line
-print("New and Updated content report for highlights...")
-LogOutput("New and Updated content report for highlights...\n")
 
 #Directories
 if env == 'dev': 
     reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
     print('Export directory set to DEV folder...')
-    LogOutput("Export directory set to DEV folder...\n")
 else: reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
 
+#reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
 #aicerDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
@@ -222,28 +242,42 @@ globalmetricsDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER_S
 #globalmetricsDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
-logfilepath = reportDir + 'log.txt'
 
 
+existingReports = ListOfFilesInDirectory(reportDir, '*.csv')
+print(existingReports)
+
+JCSLogFile = reportDir + 'JCSlog.txt'
+l = open(JCSLogFile,'w')
+logdate =  str(time.strftime("%d%m%Y"))
+l.write("Start "+logdate+"\n")
+l.close()
+
+print("New and Updated content report for highlights...")
+LogOutput("New and Updated content report for highlights...")
 
 aicerFilename = FindMostRecentFile(aicerDir, '*AICER*.csv')
 aicerFilename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',aicerFilename).group(1)
 print('Loading the most recent AICER report: ' + aicerFilename)
-LogOutput("Loading the most recent AICER report: " + str(aicerFilename) + "\n")
+LogOutput("Loading the most recent AICER report: " + str(aicerFilename))
 aicershortcutsFilename = FindMostRecentFile(globalmetricsDir, 'AllContentItemsExportWithShortCutNodeInfo*.csv')
 print('Loading the most recent AICER Shortcuts report: ' + aicershortcutsFilename)
-LogOutput("Loading the most recent AICER Shortcuts report: " + str(aicershortcutsFilename) + "\n")
+LogOutput("Loading the most recent AICER Shortcuts report: " + str(aicershortcutsFilename))
+
 #filter
 dfaicer = pd.read_csv(aicerDir + aicerFilename, encoding='utf-8', low_memory=False) #Load csv file into dataframe
 print('Aicer loaded...loading Aicer shortcuts...')
-LogOutput("Aicer loaded...loading Aicer shortcuts...\n")
+LogOutput("Aicer loaded...loading Aicer shortcuts...")
 dfshortcuts =  pd.read_csv(aicershortcutsFilename, encoding='utf-8', low_memory=False) #Load csv file into dataframe
 print('Aicer shortcuts loaded...filtering reports...')
-LogOutput("Aicer shortcuts loaded...filtering reports...\n")
+LogOutput("Aicer shortcuts loaded...filtering reports...")
 
 Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'weekly', 'new')
 Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'weekly', 'updated')
 Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'monthly', 'new')
 Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'monthly', 'updated')
 
+archivedList = Archive(existingReports, reportDir)
+print(archivedList)
+LogOutput('Moved following files to Archive folder: ' + str(archivedList))
 LogOutput("End")

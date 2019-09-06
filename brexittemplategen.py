@@ -24,7 +24,7 @@ def FindNextWeekday(givendate, weekday):
 def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):    
     constantPA = PA        
     #PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*' + constantPA + ' Weekly highlights *.xml')
-    PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*.xml')
+    PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*preview.xml')
     print('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
 
     #Extract sections from other docs
@@ -69,7 +69,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
     khbody = etree.SubElement(khdoc, '{%s}body' % NSMAP['kh'])
     
     khdoctitle = etree.SubElement(khbody, '{%s}document-title' % NSMAP['kh'])
-    khdoctitle.text = PA + ' [weekly/monthly] highlights—[dd Month yyyy]'
+    khdoctitle.text = PA + ' highlights—[dd Month yyyy]'
     khminisummary = etree.SubElement(khbody, '{%s}mini-summary' % NSMAP['kh'])
     khminisummary.text = "These Brexit highlights bring you a summary of the latest Brexit news and legislation updates from across a range of LexisNexis® practice areas."
     #Intro
@@ -461,8 +461,8 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
 
 
     tree = etree.ElementTree(khdoc)
-    xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights template ' + highlightDate + ' test.xml'
-    #xmlfilepath = localDir + constantPA + '\\' + constantPA + ' Weekly highlights template ' + highlightDate + ' test.xml'
+    xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' highlights template ' + highlightDate + ' test.xml'
+    #xmlfilepath = localDir + constantPA + '\\' + constantPA + ' highlights template ' + highlightDate + ' test.xml'
     tree.write(xmlfilepath,encoding='utf-8')
 
     f = open(xmlfilepath,'r', encoding='utf-8')
@@ -544,7 +544,7 @@ reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Update
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 PublicLawFilepath = FindMostRecentFile(outputDir + 'Public Law\\', '*preview.xml')
 #BrexitTemplateFilepath = ('\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\Brexit\\Brexit highlights template.xml')
-BrexitTemplateFilepath = FindMostRecentFile(outputDir + 'Brexit\\', '*.xml')
+BrexitTemplateFilepath = FindMostRecentFile(outputDir + 'Brexit\\', '*preview.xml')
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 
@@ -564,7 +564,7 @@ givendate = datetime.datetime.today()
 
 #highlightDate = str(nextThursday.strftime("%#d %B %Y"))
 highlightDate = str(givendate.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
-print('Generating Brexit weekly templates for today: ', highlightDate) 
+print('Generating Brexit templates for today: ', highlightDate) 
 PA = 'Brexit'
 #wait = input("PAUSED...when ready press enter")
 TemplateGeneration(PA, highlightDate, highlightType, outputDir, NSMAP)
