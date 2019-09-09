@@ -197,6 +197,12 @@ def FindMostRecentFile(directory, pattern):
     return filelist[0]
 
 
+def FindRecentFile(directory, pattern, number):
+    filelist = os.path.join(directory, pattern) #builds list of file in a directory based on a pattern
+    filelist = sorted(glob.iglob(filelist), key=os.path.getmtime, reverse=True) #sort by date modified with the most recent at the top
+    return filelist[number]
+
+
 def ListOfFilesInDirectory(directory, pattern):
     existingList = []
     filelist = glob.iglob(os.path.join(directory, pattern)) #builds list of file in a directory based on a pattern
@@ -245,9 +251,8 @@ lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis
 
 
 existingReports = ListOfFilesInDirectory(reportDir, '*.csv')
-print(existingReports)
 
-JCSLogFile = reportDir + 'JCSlog.txt'
+JCSLogFile = reportDir + 'JCSlog-reportgen.txt'
 l = open(JCSLogFile,'w')
 logdate =  str(time.strftime("%d%m%Y"))
 l.write("Start "+logdate+"\n")
@@ -256,28 +261,37 @@ l.close()
 print("New and Updated content report for highlights...")
 LogOutput("New and Updated content report for highlights...")
 
-aicerFilename = FindMostRecentFile(aicerDir, '*AICER*.csv')
-aicerFilename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',aicerFilename).group(1)
-print('Loading the most recent AICER report: ' + aicerFilename)
-LogOutput("Loading the most recent AICER report: " + str(aicerFilename))
-aicershortcutsFilename = FindMostRecentFile(globalmetricsDir, 'AllContentItemsExportWithShortCutNodeInfo*.csv')
-print('Loading the most recent AICER Shortcuts report: ' + aicershortcutsFilename)
-LogOutput("Loading the most recent AICER Shortcuts report: " + str(aicershortcutsFilename))
+aicerMostRecent = FindMostRecentFile(aicerDir, '*AICER*.csv')
+aicerSecondMostRecent = FindRecentFile(aicerDir, '*AICER*.csv', 1) #1 is the second on the list
+print(aicerMostRecent, os.path.getsize(aicerMostRecent))
+print(aicerSecondMostRecent, os.path.getsize(aicerSecondMostRecent))
 
-#filter
-dfaicer = pd.read_csv(aicerDir + aicerFilename, encoding='utf-8', low_memory=False) #Load csv file into dataframe
-print('Aicer loaded...loading Aicer shortcuts...')
-LogOutput("Aicer loaded...loading Aicer shortcuts...")
-dfshortcuts =  pd.read_csv(aicershortcutsFilename, encoding='utf-8', low_memory=False) #Load csv file into dataframe
-print('Aicer shortcuts loaded...filtering reports...')
-LogOutput("Aicer shortcuts loaded...filtering reports...")
+if os.path.getsize(aicerMostRecent) < os.path.getsize(aicerSecondMostRecent):
+    print("Problem with the most recent Aicer report: filesize appears to be less than the previous Aicer report which indicates an error. Manual investigation required...")
+    LogOutput("Problem with the most recent Aicer report: filesize appears to be less than the previous Aicer report which indicates an error. Manual investigation required...")
+else:
+    aicerFilename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',aicerMostRecent).group(1)
+    print('Loading the most recent AICER report: ' + aicerFilename)
+    LogOutput("Loading the most recent AICER report: " + str(aicerFilename))
+    aicershortcutsFilename = FindMostRecentFile(globalmetricsDir, 'AllContentItemsExportWithShortCutNodeInfo*.csv')
+    print('Loading the most recent AICER Shortcuts report: ' + aicershortcutsFilename)
+    LogOutput("Loading the most recent AICER Shortcuts report: " + str(aicershortcutsFilename))
 
-Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'weekly', 'new')
-Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'weekly', 'updated')
-Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'monthly', 'new')
-Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'monthly', 'updated')
+    #filter
+    dfaicer = pd.read_csv(aicerDir + aicerFilename, encoding='utf-8', low_memory=False) #Load csv file into dataframe
+    print('Aicer loaded...loading Aicer shortcuts...')
+    LogOutput("Aicer loaded...loading Aicer shortcuts...")
+    dfshortcuts =  pd.read_csv(aicershortcutsFilename, encoding='utf-8', low_memory=False) #Load csv file into dataframe
+    print('Aicer shortcuts loaded...filtering reports...')
+    LogOutput("Aicer shortcuts loaded...filtering reports...")
 
-archivedList = Archive(existingReports, reportDir)
-print(archivedList)
-LogOutput('Moved following files to Archive folder: ' + str(archivedList))
+    Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'weekly', 'new')
+    Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'weekly', 'updated')
+    Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'monthly', 'new')
+    Filter(reportDir, aicerFilename, dfaicer, dfshortcuts, 'monthly', 'updated')
+
+    archivedList = Archive(existingReports, reportDir)
+    print(archivedList)
+    LogOutput('Moved following files to Archive folder: ' + str(archivedList))
+
 LogOutput("End")

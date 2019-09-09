@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 from lxml import etree
 
 def DFCleanup(df, ShortcutTypeList, ReportType):
+    LogOutput('Entering DFCleanup...')
     df1 = pd.DataFrame()
     i=0
     for index, row in df.iterrows(): #loop through df deconstruct/reconstruct
@@ -35,6 +36,7 @@ def DFCleanup(df, ShortcutTypeList, ReportType):
         i=i+1 #increment the counter   
     df1.columns = ["DocID", "ContentItemType", "PA", "OriginalContentItemPA", "DocTitle", "UnderReview"]   
     #df1.to_csv(ReportType + '.csv', sep=',',index=False) 
+    LogOutput('DFCleanup complete...')
     return df1
 
     
@@ -80,6 +82,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
             dfNew = dfNew.sort_values(['DocTitle'], ascending = True)
             newHighlightCount = len(dfNew)
             print(PA, ContentType, newHighlightCount, 'new docs')   
+            LogOutput(PA + ', ' + ContentType + ', ' + str(newHighlightCount) + ' new docs')
             if ContentType == 'Precedent':
                 if newHighlightCount > 1: ContentTypeHeader = 'New Precedents'
                 else: ContentTypeHeader = 'New Precedent'
@@ -138,6 +141,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
             dfUpdate = dfUpdate.sort_values(['DocTitle'], ascending = True)
             updateHighlightCount = len(dfUpdate)
             print(PA, ContentType, updateHighlightCount, 'updates') 
+            LogOutput(PA + ', ' + ContentType + ', ' + str(updateHighlightCount) + ' updates')
             if ContentType == 'Precedent': 
                 if updateHighlightCount > 1: ContentTypeHeader = 'Updated Precedents'
                 else: ContentTypeHeader = 'Updated Precedent'
@@ -196,6 +200,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
     dfNew = dfNew.sort_values(['DocTitle'], ascending = True)
     newHighlightCount = len(dfNew)
     print(PA, newHighlightCount, 'new QAs')     
+    LogOutput(PA + ', ' + str(newHighlightCount) + ' new QAs')
     if newHighlightCount > 0:            
         trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
         coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
@@ -219,7 +224,8 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
                 try: pguid = tag.get('pguid')    
                 except AttributeError: 
                     pguid = 'notfound'
-                    print('Not found on pguid look up list: ' + str(DocID) + str(DocTitle))         
+                    print('Not found on pguid look up list: ' + str(DocID) + str(DocTitle)) 
+                    LogOutput('Not found on pguid look up list: ' + str(DocID) + str(DocTitle))        
                 #print(DocID, DocTitle, ContentType, dpsi, pguidlookup, pguid)              
             except: pguid = 'notfound'
 
@@ -259,6 +265,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
     f.close()
 
     print('XML exported to...' + xmlfilepath)
+    LogOutput('XML exported to...' + xmlfilepath)
    
 
 def FindMostRecentFile(directory, pattern):
@@ -282,32 +289,46 @@ def IsThursday(givendate):
     else: return False
 
 
+def LogOutput(message):
+    l = open(JCSLogFile,'a')
+    l.write(message + '\n')
+    l.close()
+
 
 #Directories
-#reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
-reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
+reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
+#reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
     
 #outputDir = 'xml\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 ShortcutTypeList = ['SubtopicShortcut', 'Shortcut', 'SubtopicShortcutOfShortcut']
 
 givendate = datetime.datetime.today()
-#givendate = datetime.date(2019, 8, 30)
-print(givendate)
-print('Is last working day of the month:' + str(IsLastWorkingDayOfMonth(givendate)))
-print('Is a Thursday:' + str(IsThursday(givendate)))    
+givendate = datetime.date(2019, 10, 31)
+#print(givendate)
+#print('Is last working day of the month:' + str(IsLastWorkingDayOfMonth(givendate)))
+#print('Is a Thursday:' + str(IsThursday(givendate)))    
+
+JCSLogFile = reportDir + 'JCSlog-xmlgen.txt'
+l = open(JCSLogFile,'w')
+logdate =  str(time.strftime("%d%m%Y"))
+l.write("Start "+logdate+"\n")
+l.close()
 
 
 #main script
+print("Today's date is: " + str(givendate))
+LogOutput("Today's date is: " + str(givendate))
 if IsLastWorkingDayOfMonth(givendate) == True:
-    print("XML auto-generation for monthly highlights...\n\n")
+    print("\nXML auto-generation for monthly highlights...\n")
+    LogOutput("\nXML auto-generation for monthly highlights...\n")
     monthlyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     monthlyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     dfUpdateHighlights = DFCleanup(pd.read_csv(monthlyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
@@ -315,11 +336,14 @@ if IsLastWorkingDayOfMonth(givendate) == True:
     highlightDate = str(time.strftime("%B %Y")) 
     dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')
     for PA in MonthlyPAs:
-        XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
-
-else: print('Today is not the last working day of the month...skipping monthly highlight xml generation...')
+        XMLGenerationWeekly(PA, highlightDate, 'monthly', dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
+else: 
+    print('Today is not the last working day of the month...skipping monthly highlight xml generation...')
+    LogOutput('Today is not the last working day of the month...skipping monthly highlight xml generation...')
 
 if IsThursday(givendate) == True:
+    print("\nXML auto-generation for weekly highlights...\n")
+    LogOutput("\nXML auto-generation for weekly highlights...\n")
     weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     weeklyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     dfUpdateHighlights = DFCleanup(pd.read_csv(weeklyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
@@ -328,12 +352,15 @@ if IsThursday(givendate) == True:
     dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')    
     for PA in AllPAs:
         if PA not in MonthlyPAs:
-            XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
-else: print('Today is not a Thursday...skipping weekly highlight xml generation...')
+            XMLGenerationWeekly(PA, highlightDate, 'weekly', dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
+else: 
+    print('Today is not a Thursday...skipping weekly highlight xml generation...')
+    LogOutput('Today is not a Thursday...skipping weekly highlight xml generation...')
 
 
 
 print('Finished')
+LogOutput('Finished')
 
 
 #wait = input("PAUSED...when ready press enter")
