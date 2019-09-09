@@ -231,14 +231,8 @@ def Archive(listOfFiles, reportDir):
 
 
 #main script
-env = sys.argv[1] #taken from command line
-
-#Directories
-if env == 'dev': 
-    reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
-    print('Export directory set to DEV folder...')
-else: reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
-
+#reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
+reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
 #reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
