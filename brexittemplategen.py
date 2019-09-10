@@ -591,7 +591,7 @@ def sendEmail(msg, receiver_email):
 
 #Email info
 sender_email = 'LNGUKPSLDigitalEditors@ReedElsevier.com'
-receiver_email_list = ['LNGUKPSLDigitalEditors@ReedElsevier.com', 'holly.nankivell@lexisnexis.co.uk', 'michael.agnew@lexisnexis.co.uk', 'james-john.dwyer-wilkinson@lexisnexis.co.uk']
+receiver_email_list = ['LNGUKPSLDigitalEditors@ReedElsevier.com', 'holly.nankivell@lexisnexis.co.uk', 'anne.kingsley@lexisnexis.co.uk', 'Cristiana.Rossetti@lexisnexis.co.uk', 'michael.agnew@lexisnexis.co.uk', 'james-john.dwyer-wilkinson@lexisnexis.co.uk']
 
 #Directories
 logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
