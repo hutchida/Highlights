@@ -235,6 +235,7 @@ def Archive(listOfFiles, reportDir):
 reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
 #reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
+logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
 aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
 #aicerDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
 #globalmetricsDir = '\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER_withShortcut_AdHoc\\'
@@ -246,7 +247,7 @@ lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis
 
 existingReports = ListOfFilesInDirectory(reportDir, '*.csv')
 
-JCSLogFile = reportDir + 'JCSlog-reportgen.txt'
+JCSLogFile = logDir + 'JCSlog-reportgen.txt'
 l = open(JCSLogFile,'w')
 logdate =  str(time.strftime("%d%m%Y"))
 l.write("Start "+logdate+"\n")
