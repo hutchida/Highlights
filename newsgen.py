@@ -13,12 +13,15 @@ import datetime
 import sys
 import xml.etree.ElementTree as ET
 from lxml import etree
+import shutil
 
 
     
 def XMLGeneration(PA, highlightDate, highlightType, outputDir):
     constantPA = PA            
     CSVFilepath = outputDir + constantPA + '\\Auto-generate XML\\' + constantPA + ' news items ' + highlightDate + '.csv'
+    archiveDir = outputDir + constantPA + '\\archive\\' 
+    archiveFilepath = archiveDir + constantPA + ' news items ' + highlightDate + '.csv'
     try: 
         dfPA = pd.read_csv(CSVFilepath)
         NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
@@ -128,6 +131,16 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
 
             print('XML exported to...' + xmlfilepath)
             LogOutput('XML exported to...' + xmlfilepath)
+
+            #Check archive folder exists
+            if os.path.isdir(archiveDir) == False:
+                os.makedirs(archiveDir)
+
+            shutil.copy(CSVFilepath, archiveFilepath) #Copy
+            os.remove(CSVFilepath) #Delete old file
+            print('Moved: ' + CSVFilepath + ', to: ' + archiveFilepath)
+            LogOutput('Moved: ' + CSVFilepath + ', to: ' + archiveFilepath)
+
     except FileNotFoundError:
         #print('CSV file not found in the watched folder...' + CSVFilepath)
         LogOutput('CSV file not found in the watched folder...' + CSVFilepath)
@@ -140,19 +153,6 @@ def FindMostRecentFile(directory, pattern):
     except: return 'na'
 
 
-def IsLastWorkingDayOfMonth(givendate):
-    offset = BMonthEnd()
-    #givendate += datetime.timedelta(days=3)
-    lastday = offset.rollforward(givendate)
-    if givendate == lastday.date(): return True
-    else: return False 
-
-def IsThursday(givendate):
-    print(givendate.weekday())
-    if givendate.weekday() == 3: return True
-    else: return False
-
-
 def LogOutput(message):
     l = open(JCSLogFile,'a')
     l.write(message + '\n')
@@ -160,10 +160,6 @@ def LogOutput(message):
 
 
 #Directories
-#reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
-#reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
-#reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
-reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
 #logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
 #outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
