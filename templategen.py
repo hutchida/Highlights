@@ -39,17 +39,19 @@ def FindLastFridayOfMonth(givendate, weekday):
     #return givendate + datetime.timedelta(days=dayshift)
     
     
-def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSection, NSMAP):  
+def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSection, LexTalkSection, NSMAP):  
     LogOutput(PA)
     print(PA)
     constantPA = PA        
     #PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*' + constantPA + ' Weekly highlights *.xml')
-    PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*.xml')
+    PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*preview.xml')
     print('lasthighlightsfilepath: ' + PrevHighlightsFilepath)   
     LogOutput('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
 
     #extract info from last highlights' doc
     if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
+    if PA == 'Restructuring and Insolvency': PA = 'Restructuring & Insolvency'
+    #if PA == 'Insurance and Reinsurance': PA = 'Insurance'
         
     try:
         tree = etree.parse(PrevHighlightsFilepath)
@@ -77,8 +79,6 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
         LogOutput('Problem loading previous xml for: ' + constantPA)
 
 
-    #if PA == 'Share Incentives': PA = 'Share Schemes'
-    #if PA == 'Insurance and Reinsurance': PA = 'Insurance'
     khdoc = etree.Element('{%s}document' % NSMAP['kh'], nsmap=NSMAP)
     khbody = etree.SubElement(khdoc, '{%s}body' % NSMAP['kh'])
     
@@ -99,12 +99,19 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
     corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
     corepara.text = 'See News Analysis: [XML ref for News Analysis].'
         
+    #LexTalkSection news alerts    
+    try: khbody.append(LexTalkSection)
+    except: 
+        print('No LexTalkSection section found...')        
+        LogOutput('No LexTalkSection section found...')
+
+        
     #Daily and weekly news alerts    
     try: khbody.append(NewsAlertSection)
     except: 
         print('No Daily and weekly news alerts section found...')        
         LogOutput('No Daily and weekly news alerts section found...')
-        
+
     #Dates for your diary    
     try: khbody.append(DatesSection)
     except: 
@@ -211,10 +218,6 @@ MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Com
 #givendate = datetime.datetime.today()
 givendate = datetime.date(2019, 10, 31)
 
-#print(givendate)
-#print('Is last working day of the month:' + str(IsLastWorkingDayOfMonth(givendate)))
-#print('Is a Thursday:' + str(IsThursday(givendate)))    
-
 JCSLogFile = logDir + 'JCSlog-templategen.txt'
 l = open(JCSLogFile,'w')
 logdate =  str(time.strftime("%d%m%Y"))
@@ -230,6 +233,7 @@ LogOutput("Today's date is: " + str(givendate))
 nextThursday = FindNextWeekday(givendate, 3) # 3 is thursday
 lastWorkingDayOfMonth = FindLastWorkingDayOfMonth(givendate)
 NewsAlertSection = HarvestTemplateSection(templateFilepath, 'Daily and weekly news alerts', NSMAP)
+LexTalkSection = HarvestTemplateSection(templateFilepath, 'LexTalk', NSMAP)
 
 
 
@@ -239,7 +243,7 @@ if IsThursday(givendate) == True:
     LogOutput('Generating weekly templates for the coming Thursday: ' + highlightDate)
     for PA in AllPAs:    
         if PA not in MonthlyPAs:
-            TemplateGeneration(PA, highlightDate, 'Weekly', outputDir, NewsAlertSection, NSMAP)
+            TemplateGeneration(PA, highlightDate, 'weekly', outputDir, NewsAlertSection, LexTalkSection, NSMAP)
 else: 
     print('Today is not a Thursday...skipping weekly highlight TEMPLATE generation...')
     LogOutput('Today is not a Thursday...skipping weekly highlight TEMPLATE generation...')
@@ -249,7 +253,7 @@ if IsLastWorkingDayOfMonth(givendate) == True:
     print('Generating monthly templates for the last working day of the month: ' + highlightDate)
     LogOutput('Generating monthly templates for the last working day of the month: ' + highlightDate)
     for PA in MonthlyPAs:
-        TemplateGeneration(PA, highlightDate, 'Monthly', outputDir, NewsAlertSection, NSMAP)
+        TemplateGeneration(PA, highlightDate, 'monthly', outputDir, NewsAlertSection, LexTalkSection, NSMAP)
 else:
     print('Today is not the last working day of the month...skipping monthly highlight TEMPLATE generation...')
     LogOutput('Today is not the last working day of the month...skipping monthly highlight TEMPLATE generation...')

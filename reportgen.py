@@ -1,5 +1,5 @@
 #AICER updated content log for highlights, loops through all the most recent AICER report and builds a log based on content updated/new in the last week/month
-#last updated 17.06.19
+#last updated 28.10.19
 #Developed by Daniel Hutchings
 #JR added logfile info 19.08.19
 
@@ -15,6 +15,9 @@ import sys
 import shutil
 import xml.etree.ElementTree as ET
 from lxml import etree
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 def LogOutput(message):
@@ -230,14 +233,31 @@ def Archive(listOfFiles, reportDir):
     return copyList
 
 
+
+def formatEmail(reciever_email, subject, html):
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = sender_email
+    msg["To"] = receiver_email
+
+    HTMLPart = MIMEText(html, "html")
+    msg.attach(HTMLPart)
+    return msg
+
+def sendEmail(msg, receiver_email):
+    s = smtplib.SMTP("LNGWOKEXCP002.legal.regn.net")
+    s.sendmail(sender_email, receiver_email, msg.as_string())
+
+
 #main script
 #reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
-reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
-#reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
+#reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
+reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
-logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
-aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
-#aicerDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
+#logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
+logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
+#aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
+aicerDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
 #globalmetricsDir = '\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER_withShortcut_AdHoc\\'
 globalmetricsDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER_Shortcuts\\'
 #globalmetricsDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
@@ -258,12 +278,43 @@ LogOutput("New and Updated content report for highlights...")
 
 aicerMostRecent = FindMostRecentFile(aicerDir, '*AICER*.csv')
 aicerSecondMostRecent = FindRecentFile(aicerDir, '*AICER*.csv', 1) #1 is the second on the list
-print(aicerMostRecent, os.path.getsize(aicerMostRecent))
-print(aicerSecondMostRecent, os.path.getsize(aicerSecondMostRecent))
 
-if os.path.getsize(aicerMostRecent) < os.path.getsize(aicerSecondMostRecent):
-    print("Problem with the most recent Aicer report: filesize appears to be less than the previous Aicer report which indicates an error. Manual investigation required...")
-    LogOutput("Problem with the most recent Aicer report: filesize appears to be less than the previous Aicer report which indicates an error. Manual investigation required...")
+aicerMostRecentSize = os.path.getsize(aicerMostRecent)
+aicerSecondMostRecentSize = os.path.getsize(aicerSecondMostRecent)
+print(aicerMostRecent, aicerMostRecentSize)
+print(str(aicerMostRecentSize + 2000000))
+print(aicerSecondMostRecent, aicerSecondMostRecentSize)
+
+if aicerMostRecentSize + 2000000 < aicerSecondMostRecentSize: #add 2000kb as it's ok to have the aicer slightly less, but not less than a couple of meg
+    print("Problem with the most recent Aicer report: filesize appears to be significantly less than the previous Aicer report which indicates an error. Manual investigation required...")
+    errorTitle = "Problem with the most recent Aicer report: filesize appears to be significantly less than the previous Aicer report which indicates an error. Manual investigation required...\n"
+    text1 = "Most recent Aicer: " + aicerMostRecent + " Size: " + str(aicerMostRecentSize) + "\n"
+    text2 = "Second most recent Aicer: " + aicerSecondMostRecent + " Size: " + str(aicerSecondMostRecentSize)    
+    LogOutput(errorTitle + text1 + text2)
+
+    html = "<html><head><title>" + errorTitle + "</title></head><body>"
+    html += '<div style="font-size: 100%; text-align: center;">'
+    html += '<p>' + errorTitle + '</p>'
+    html += "<p><b>Most recent Aicer: </b><br />" + aicerMostRecent + " <br /><b>Size: </b>" + str(aicerMostRecentSize) + "</p>"
+    html += "<p><b>Second most recent Aicer: </b><br />" + aicerSecondMostRecent + " <br /><b>Size: </b>" + str(aicerSecondMostRecentSize) + "</p>"
+    html += 'Investigate further in the below locations: <br />'
+    html += '<p><a href="file://///atlas/lexispsl/Highlights/Automatic creation/AICER/" target="_blank">\\\\atlas\lexispsl\Highlights\Automatic creation\AICER\</a></p>'
+    html += '<p><a href="file://///atlas/knowhow/PSL_Content_Management/AICER_Reports/AICER_PM/" target="_blank">\\\\atlas\knowhow\PSL_Content_Management\AICER_Reports\AICER_PM\</a></p>'
+    html += '<sup>See the log for more details: <br />'
+    html += '<a href="file://///atlas/lexispsl/Highlights/Automatic creation/Logs/JCSlog-reportgen.txt" target="_blank">\\\\atlas\lexispsl\Highlights\Automatic creation\Logs\JCSlog-reportgen.txt</a></sup>'
+    html += '</div></body></html>'
+
+    #Email section
+    sender_email = 'LNGUKPSLDigitalEditors@ReedElsevier.com'
+    receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk']#, 'james-john.dwyer-wilkinson@lexisnexis.co.uk', 'LNGUKPSLDigitalEditors@ReedElsevier.com']
+
+    #create and send email
+    for receiver_email in receiver_email_list:
+        msg = formatEmail(receiver_email, errorTitle, html)
+        sendEmail(msg, receiver_email)
+    print('Email sent...')
+    LogOutput('Email sent to...' + str(receiver_email_list))
+
 else:
     aicerFilename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',aicerMostRecent).group(1)
     print('Loading the most recent AICER report: ' + aicerFilename)
@@ -288,5 +339,6 @@ else:
     archivedList = Archive(existingReports, reportDir)
     print(archivedList)
     LogOutput('Moved following files to Archive folder: ' + str(archivedList))
+
 
 LogOutput("End")
