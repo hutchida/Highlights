@@ -89,6 +89,8 @@ for newsItem in newsItems:
         LogOutput(str(newsCitation))    
         print(str(newsCitation))
 df['TopicName'] = ''
+columnsTitles = ['TopicName', 'Title', 'MiniSummary', 'Date', 'Sources', 'Citation', 'PA']
+df = df.reindex(columns=columnsTitles) #reorder columns
 df.to_csv(logDir + 'all-pas-news-list.csv', index=False)
 
 

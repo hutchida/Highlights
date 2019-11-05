@@ -88,7 +88,7 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                         if newsSourcesLen > 1:                               
                             corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
                             corepara.text = 'Sources: ' 
-                            i=1
+                            i=2
                             newsSources = newsSources.findall(".//url")
                             for newsSource in newsSources:
                                 coreurl = etree.SubElement(corepara, '{%s}url' % NSMAP['core'])
@@ -96,7 +96,11 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                                 coreurl.text = newsSource.text
                                 print(i, newsSourcesLen)
                                 if i < newsSourcesLen:
-                                    coreurl.tail = ' and '
+                                    coreurl.tail = ', '
+                                else:
+                                    if i == newsSourcesLen:
+                                        coreurl.tail = ' and '
+                                    else: coreurl.tail = '.'
                                 i=i+1
                         else:
                             corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
@@ -105,6 +109,7 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                             coreurl = etree.SubElement(corepara, '{%s}url' % NSMAP['core'])
                             coreurl.set('address', newsSource.get('address'))
                             coreurl.text = newsSource.text
+                            coreurl.tail = '.'
                 
                         #wait = input("PAUSED...when ready press enter")
 
