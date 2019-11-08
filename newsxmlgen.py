@@ -23,12 +23,15 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
     archiveDir = outputDir + constantPA + '\\archive\\' 
     archiveFilepath = archiveDir + constantPA + ' news items ' + highlightDate + '.csv'
     try: 
-        dfPA = pd.read_csv(CSVFilepath)
+        dfPA = pd.read_csv(CSVFilepath, encoding='utf-8')
         NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
 
-        if PA == 'Life Sciences': PA = 'Life Sciences and Pharmaceuticals'
-        if PA == 'Share Incentives': PA = 'Share Schemes'
-        if PA == 'Insurance and Reinsurance': PA = 'Insurance'
+        if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
+        if PA == 'Banking and Finance': PA = 'Banking &amp; Finance'
+        if PA == 'Share Schemes': PA = 'Share Incentives'
+        if PA == 'Risk and Compliance': PA = 'Risk &amp; Compliance'
+        if PA == 'Wills and Probate': PA = 'Wills &amp; Probate'
+        
 
         newsItemCount = len(dfPA)
         topicList = dfPA['TopicName'].tolist()
@@ -69,7 +72,11 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                     corepara.text = newsMiniSummary
                     corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
                     if 'urn:' in newsCitation: 
-                        corepara.text = 'See News Analysis: '
+                        for item in ['Law360', 'MLex']:
+                            if item in newsMiniSummary:
+                                corepara.text = 'See: '
+                            else:
+                                corepara.text = 'See News Analysis: '
                         lncicite = etree.SubElement(corepara, '{%s}cite' % NSMAP['lnci'])
                         lncicite.set('normcite', newsCitation)
                         lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
@@ -105,7 +112,7 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                         else:
                             corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
                             corepara.text = 'Source: '              
-                            newsSource.find(".//url")
+                            newsSource = newsSources.find(".//url")
                             coreurl = etree.SubElement(corepara, '{%s}url' % NSMAP['core'])
                             coreurl.set('address', newsSource.get('address'))
                             coreurl.text = newsSource.text
@@ -168,8 +175,8 @@ def LogOutput(message):
 logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
 #logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
 #outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    

@@ -18,9 +18,20 @@ from lxml import etree
 def CSVGeneration(PA, highlightDate, highlightType, df, outputDir):
     constantPA = PA            
     CSVFilepath = outputDir + constantPA + '\\' + constantPA + ' news items ' + highlightDate + '.csv'
-    dfPA = df[(df.PA ==PA)] 
+
+    if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
+    if PA == 'Banking and Finance': PA = 'Banking & Finance'
+    if PA == 'Share Schemes': PA = 'Share Incentives'
+    if PA == 'Risk and Compliance': PA = 'Risk & Compliance'
+    if PA == 'Wills and Probate': PA = 'Wills & Probate'
+    if PA == 'Insurance and Reinsurance': 
+        PA = 'Insurance & Reinsurance'
+        dfPA[df.PA.isin(['Insurance', 'Insurance & Reinsurance'])]
+    else: 
+        dfPA = df[(df.PA ==PA)] 
+
     dfPA = dfPA.sort_values(['Title'], ascending = True)
-    dfPA.to_csv(CSVFilepath, index=False)
+    dfPA.to_csv(CSVFilepath, index=False, encoding='utf-8')
     print('CSV exported to...' + CSVFilepath)
     LogOutput('CSV exported to...' + CSVFilepath)
    
@@ -48,6 +59,7 @@ logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
 outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
+#AllPAs = ['Arbitration', 'Banking &amp; Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring &amp; Insolvency', 'Risk &amp; Compliance', 'Share Incentives', 'Tax', 'TMT', 'Wills &amp; Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 
 JCSLogFile = logDir + 'JCSlog-newscsvgen.txt'
