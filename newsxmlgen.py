@@ -19,11 +19,12 @@ import shutil
     
 def XMLGeneration(PA, highlightDate, highlightType, outputDir):
     constantPA = PA            
-    CSVFilepath = outputDir + constantPA + '\\Auto-generate XML\\' + constantPA + ' news items ' + highlightDate + '.csv'
+    XLSFilepath = outputDir + constantPA + '\\Auto-generate XML\\' + constantPA + ' news items ' + highlightDate + '.xlsx'
     archiveDir = outputDir + constantPA + '\\archive\\' 
-    archiveFilepath = archiveDir + constantPA + ' news items ' + highlightDate + '.csv'
+    archiveFilepath = archiveDir + constantPA + ' news items ' + highlightDate + '.xlsx'
     try: 
-        dfPA = pd.read_csv(CSVFilepath, encoding='utf-8')
+        dfPA = pd.ExcelFile(XLSFilepath, encoding='utf-8')
+        dfPA = dfPA.parse("Sheet1")
         NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
 
         if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
@@ -61,7 +62,8 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                 for x in range(0,topicCount):                               
                     newsTitle = dfTopic.Title.iloc[x]     
                     newsCitation = dfTopic.Citation.iloc[x]
-                    newsDate = dfTopic.Date.iloc[x]
+                    newsDate = dfTopic.IssueDate.iloc[x]
+                    newsPubDate = dfTopic.PubDate.iloc[x]
                     newsMiniSummary = dfTopic.MiniSummary.iloc[x]
                     newsSources = dfTopic.Sources.iloc[x]
                     #News
@@ -110,13 +112,16 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                                     else: coreurl.tail = '.'
                                 i=i+1
                         else:
-                            corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
-                            corepara.text = 'Source: '              
-                            newsSource = newsSources.find(".//url")
-                            coreurl = etree.SubElement(corepara, '{%s}url' % NSMAP['core'])
-                            coreurl.set('address', newsSource.get('address'))
-                            coreurl.text = newsSource.text
-                            coreurl.tail = '.'
+                            try: 
+                                newsSource = newsSources.find(".//url")
+                                newsSourceAddress = newsSource.get('address')
+                                corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
+                                corepara.text = 'Source: '                                            
+                                coreurl = etree.SubElement(corepara, '{%s}url' % NSMAP['core'])
+                                coreurl.set('address', newsSourceAddress)                                
+                                coreurl.text = newsSource.text
+                                coreurl.tail = '.'
+                            except AttributeError: print('No source URL given...')
                 
                         #wait = input("PAUSED...when ready press enter")
 
@@ -148,14 +153,14 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
             if os.path.isdir(archiveDir) == False:
                 os.makedirs(archiveDir)
 
-            shutil.copy(CSVFilepath, archiveFilepath) #Copy
-            os.remove(CSVFilepath) #Delete old file
-            print('Moved: ' + CSVFilepath + ', to: ' + archiveFilepath)
-            LogOutput('Moved: ' + CSVFilepath + ', to: ' + archiveFilepath)
+            shutil.copy(XLSFilepath, archiveFilepath) #Copy
+            os.remove(XLSFilepath) #Delete old file
+            print('Moved: ' + XLSFilepath + ', to: ' + archiveFilepath)
+            LogOutput('Moved: ' + XLSFilepath + ', to: ' + archiveFilepath)
 
     except FileNotFoundError:
         #print('CSV file not found in the watched folder...' + CSVFilepath)
-        LogOutput('CSV file not found in the watched folder...' + CSVFilepath)
+        LogOutput('XSLX file not found in the watched folder...' + XLSFilepath)
 
 def FindMostRecentFile(directory, pattern):
     try:
@@ -175,8 +180,8 @@ def LogOutput(message):
 logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
 #logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
 #outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
