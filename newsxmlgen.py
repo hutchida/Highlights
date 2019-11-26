@@ -22,9 +22,12 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
     XLSFilepath = outputDir + constantPA + '\\Auto-generate XML\\' + constantPA + ' news items ' + highlightDate + '.xlsx'
     archiveDir = outputDir + constantPA + '\\archive\\' 
     archiveFilepath = archiveDir + constantPA + ' news items ' + highlightDate + '.xlsx'
+    LogOutput('XLSX filepath to check...' + XLSFilepath)
     try: 
-        dfPA = pd.ExcelFile(XLSFilepath, encoding='utf-8')
+        dfPA = pd.ExcelFile(XLSFilepath)
+        #LogOutput('Spreadsheet loaded...')
         dfPA = dfPA.parse("Sheet1")
+        #LogOutput('Spreadsheet parsed...')
         NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
 
         if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
@@ -146,8 +149,8 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
             f.write(newdata)
             f.close()
 
-            print('XML exported to...' + xmlfilepath)
-            LogOutput('XML exported to...' + xmlfilepath)
+            print('\nXML exported to...' + xmlfilepath)
+            LogOutput('\nXML exported to...' + xmlfilepath)
 
             #Check archive folder exists
             if os.path.isdir(archiveDir) == False:
@@ -159,8 +162,8 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
             LogOutput('Moved: ' + XLSFilepath + ', to: ' + archiveFilepath)
 
     except FileNotFoundError:
-        #print('CSV file not found in the watched folder...' + CSVFilepath)
-        LogOutput('XSLX file not found in the watched folder...' + XLSFilepath)
+        print('XSLX file not found in the watched folder...' + XLSFilepath)
+        #LogOutput('XSLX file not found in the watched folder...' + XLSFilepath)
 
 def FindMostRecentFile(directory, pattern):
     try:
@@ -180,8 +183,8 @@ def LogOutput(message):
 logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
 #logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
 #outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    

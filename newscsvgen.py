@@ -175,9 +175,9 @@ df = ExtractFromNewsFeed()
 LogOutput("\nNews CSV guide generation for weekly highlights...\n")
  
 for PA in AllPAs:
-    if PA not in MonthlyPAs: 
-        CSVGeneration(PA, highlightDate, 'weekly', df, outputDir)
-        XLSAddFormat(PA)
+    #if PA not in MonthlyPAs: 
+    CSVGeneration(PA, highlightDate, 'weekly', df, outputDir)
+    XLSAddFormat(PA)
 
 print('Finished, access the log here: ' + logDir + 'JCSlog-newscsvgen.txt')
 LogOutput('Finished')
