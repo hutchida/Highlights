@@ -119,7 +119,8 @@ AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Co
 #AllPAs = ['Arbitration', 'Banking &amp; Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring &amp; Insolvency', 'Risk &amp; Compliance', 'Share Incentives', 'Tax', 'TMT', 'Wills &amp; Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 
-JCSLogFile = logDir + 'JCSlog-newscsvgen.txt'
+#JCSLogFile = logDir + 'JCSlog-newscsvgen.txt'
+JCSLogFile = logDir + time.strftime("JCSlog-newscsvgen-%d%m%Y-%H%M%S.txt")
 l = open(JCSLogFile,'w')
 logdate =  str(time.strftime("%d%m%Y"))
 l.write("Start "+logdate+"\n")
