@@ -78,7 +78,8 @@ def CSVGeneration(PA, highlightDate, highlightType, df, outputDir):
     else: 
         dfPA = df[(df.PA ==PA)] 
 
-    dfPA = dfPA.sort_values(['Title'], ascending = True)
+    #dfPA = dfPA.sort_values(['Title'], ascending = True)
+    dfPA = dfPA.sort_values(['IssueDate'], ascending = False)
     #dfPA.to_csv(CSVFilepath, index=False, encoding='utf-8')
     dfPA.to_excel(XLSFilepath, index=False, encoding='utf-8')
     #print('CSV exported to...' + CSVFilepath)
@@ -108,6 +109,7 @@ reportDir = '\\\\atlas\\Knowhow\\AutomatedContentReports\\NewsReport\\'
 #reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 
 logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
+#logDir = "\\\\atlas\\lexispsl\\Highlights\\dev\\Automatic creation\\Logs\\"    
 #logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
 #outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
 outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
@@ -119,12 +121,18 @@ AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Co
 #AllPAs = ['Arbitration', 'Banking &amp; Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring &amp; Insolvency', 'Risk &amp; Compliance', 'Share Incentives', 'Tax', 'TMT', 'Wills &amp; Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 
-#JCSLogFile = logDir + 'JCSlog-newscsvgen.txt'
-JCSLogFile = logDir + time.strftime("JCSlog-newscsvgen-%d%m%Y-%H%M%S.txt")
+JCSLogFile = logDir + 'JCSlog-newscsvgen.txt'
+#JCSLogFile = logDir + time.strftime("JCSlog-newscsvgen-%d%m%Y-%H%M%S.txt")
+
+#with open(JCSLogFile, 'w', newline='', encoding='utf-8') as myfile:
+
 l = open(JCSLogFile,'w')
 logdate =  str(time.strftime("%d%m%Y"))
 l.write("Start "+logdate+"\n")
 l.close()
+
+
+print('Writing log here: ' + JCSLogFile)
 
 highlightDate = str(time.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day   
 
@@ -180,7 +188,7 @@ for PA in AllPAs:
     CSVGeneration(PA, highlightDate, 'weekly', df, outputDir)
     XLSAddFormat(PA)
 
-print('Finished, access the log here: ' + logDir + 'JCSlog-newscsvgen.txt')
+print('Finished, access the log here: ' + JCSLogFile)
 LogOutput('Finished')
 
 
