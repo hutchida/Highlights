@@ -108,9 +108,9 @@ def LogOutput(message):
 reportDir = '\\\\atlas\\Knowhow\\AutomatedContentReports\\NewsReport\\'
 #reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 
-logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
+#logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
 #logDir = "\\\\atlas\\lexispsl\\Highlights\\dev\\Automatic creation\\Logs\\"    
-#logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
+logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
 #outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
 outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
 #outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
