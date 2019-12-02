@@ -65,19 +65,18 @@ def XLSAddFormat(PA):
 def CSVGeneration(PA, highlightDate, highlightType, df, outputDir):
     constantPA = PA            
     #CSVFilepath = outputDir + constantPA + '\\' + constantPA + ' news items ' + highlightDate + '.csv'
-    XLSFilepath = outputDir + constantPA + '\\' + constantPA + ' news items ' + highlightDate + '.xlsx'
+    XLSFilepath = outputDir + constantPA + '\\' + constantPA + ' news items ' + highlightDate + '.xlsx'    
+    dfPA = pd.DataFrame()
 
     if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
     if PA == 'Banking and Finance': PA = 'Banking & Finance'
     if PA == 'Share Schemes': PA = 'Share Incentives'
     if PA == 'Risk and Compliance': PA = 'Risk & Compliance'
+    if PA == 'Restructuring and Insolvency': PA = 'Restructuring & Insolvency'
     if PA == 'Wills and Probate': PA = 'Wills & Probate'
-    if PA == 'Insurance and Reinsurance': 
-        PA = 'Insurance & Reinsurance'
-        dfPA[df.PA.isin(['Insurance', 'Insurance & Reinsurance'])]
-    else: 
-        dfPA = df[(df.PA ==PA)] 
-
+    if PA == 'Insurance': dfPA = df[df.PA.isin(['Insurance', 'Insurance & Reinsurance'])]
+    else: dfPA = df[(df.PA ==PA)] 
+    
     #dfPA = dfPA.sort_values(['Title'], ascending = True)
     dfPA = dfPA.sort_values(['IssueDate'], ascending = False)
     #dfPA.to_csv(CSVFilepath, index=False, encoding='utf-8')
@@ -87,6 +86,11 @@ def CSVGeneration(PA, highlightDate, highlightType, df, outputDir):
     print('XLS exported to...' + XLSFilepath)
     LogOutput('XLS exported to...' + XLSFilepath)
     
+
+def IsWednesday(givendate):
+    #print(givendate.weekday())
+    if givendate.weekday() == 2: return True
+    else: return False
 
     
 
@@ -109,11 +113,11 @@ reportDir = '\\\\atlas\\Knowhow\\AutomatedContentReports\\NewsReport\\'
 #reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 
 #logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
-#logDir = "\\\\atlas\\lexispsl\\Highlights\\dev\\Automatic creation\\Logs\\"    
-logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
+logDir = "\\\\atlas\\lexispsl\\Highlights\\dev\\Automatic creation\\Logs\\"    
+#logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
 #outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 search = 'https://www.lexisnexis.com/uk/lexispsl/tax/search?pa=arbitration%2Cbankingandfinance%2Ccommercial%2Ccompetition%2Cconstruction%2Ccorporate%2Ccorporatecrime%2Cdisputeresolution%2Cemployment%2Cenergy%2Cenvironment%2Cfamily%2Cfinancialservices%2Cimmigration%2Cinformationlaw%2Cinhouseadvisor%2Cinsuranceandreinsurance%2Cip%2Clifesciences%2Clocalgovernment%2Cpensions%2Cpersonalinjury%2Cplanning%2Cpracticecompliance%2Cprivateclient%2Cproperty%2Cpropertydisputes%2Cpubliclaw%2Crestructuringandinsolvency%2Criskandcompliance%2Ctax%2Ctmt%2Cwillsandprobate&submitOnce=true&wa_origin=paHomePage&wordwheelFaces=daAjax%2Fwordwheel.faces&query='
 
@@ -148,30 +152,38 @@ def ExtractFromNewsFeed():
     LogOutput('Looping through the news xml log...')
     newsListXML = etree.parse(newsListFilepath)
     for newsItem in newsListXML.findall(".//document"):
-        newsURLString = ''
-        newsTitle = newsItem.find(".//title")
-        newsTitle = newsTitle.text
-        newsLink = search + newsTitle
+        #get date and citation info first  
         newsCitation = newsItem.find(".//citation")
-        newsCitation = newsCitation.text
-        newsMiniSummary = newsItem.find(".//mini-summary")
-        newsMiniSummary = newsMiniSummary.text
-        newsMiniSummary = re.sub("^.*analysis: ", "", newsMiniSummary)    
-        newsMiniSummary = re.sub("^.*Analysis: ", "", newsMiniSummary)    
-        newsDate = newsItem.find(".//date")
+        newsCitation = newsCitation.text      
         newsPubDate = newsItem.find(".//publish-date")
-        newsDate = re.search('([^T]*)T',newsDate.text).group(1)
         newsPubDate = re.search('([^T]*)T',newsPubDate.text).group(1)
-        if newsDate != newsPubDate: DatesDifferent = "True"
-        else: DatesDifferent = "False"
-        try: newsSources = etree.tostring(newsItem.find(".//source-links"), encoding="unicode")
-        except TypeError: newsSources = ''
-        for newsURL in newsItem.findall(".//url"): newsURLString += newsURL.get('address') + ' \n\n'
-        for newsPA in newsItem.findall(".//practice-area"):
-            dictionary_row = {"Title":newsTitle,"Citation":newsCitation,"MiniSummary":newsMiniSummary,"IssueDate":newsDate,"PubDate":newsPubDate,"Sources":newsSources,"URLs":newsURLString,"PA":newsPA.text,"DatesDifferent":DatesDifferent, "Link":newsLink}
-            df = df.append(dictionary_row, ignore_index=True)        
-            LogOutput(str(newsCitation))    
-            print(str(newsCitation))
+        year = int(re.search('(\d\d\d\d)-(\d\d)-(\d\d)',newsPubDate).group(1))
+        month = int(re.search('(\d\d\d\d)-(\d\d)-(\d\d)',newsPubDate).group(2))
+        day = int(re.search('(\d\d\d\d)-(\d\d)-(\d\d)',newsPubDate).group(3))
+        if IsWednesday(datetime.date(year, month, day)) == True:
+            print('News item from previous Wednesday, excluding: ' + newsCitation)
+            LogOutput('News item from previous Wednesday, excluding: ' + newsCitation)
+        else:            
+            newsDate = newsItem.find(".//date")
+            newsDate = re.search('([^T]*)T',newsDate.text).group(1)
+            newsURLString = ''
+            newsTitle = newsItem.find(".//title")
+            newsTitle = newsTitle.text
+            newsLink = search + newsTitle            
+            newsMiniSummary = newsItem.find(".//mini-summary")
+            newsMiniSummary = newsMiniSummary.text
+            newsMiniSummary = re.sub("^.*analysis: ", "", newsMiniSummary)    
+            newsMiniSummary = re.sub("^.*Analysis: ", "", newsMiniSummary)                
+            if newsDate != newsPubDate: DatesDifferent = "True"
+            else: DatesDifferent = "False"
+            try: newsSources = etree.tostring(newsItem.find(".//source-links"), encoding="unicode")
+            except TypeError: newsSources = ''
+            for newsURL in newsItem.findall(".//url"): newsURLString += newsURL.get('address') + ' \n\n'
+            for newsPA in newsItem.findall(".//practice-area"):
+                dictionary_row = {"Title":newsTitle,"Citation":newsCitation,"MiniSummary":newsMiniSummary,"IssueDate":newsDate,"PubDate":newsPubDate,"Sources":newsSources,"URLs":newsURLString,"PA":newsPA.text,"DatesDifferent":DatesDifferent, "Link":newsLink}
+                df = df.append(dictionary_row, ignore_index=True)        
+                LogOutput(str(newsCitation))    
+                print(str(newsCitation))
     df['TopicName'] = ''
     columnsTitles = ['TopicName', 'Title', 'MiniSummary', 'IssueDate', 'PubDate', 'Sources', 'URLs', 'Citation', 'PA', 'Link', 'DatesDifferent']
     df = df.reindex(columns=columnsTitles) #reorder columns
