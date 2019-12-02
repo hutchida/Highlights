@@ -99,6 +99,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
     corepara = etree.SubElement(trsecsub1, '{%s}para' % NSMAP['core'])
     corepara.text = 'See News Analysis: [XML ref for News Analysis].'
         
+        
     #LexTalkSection news alerts    
     try: khbody.append(LexTalkSection)
     except: 
@@ -112,6 +113,11 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
         print('No Daily and weekly news alerts section found...')        
         LogOutput('No Daily and weekly news alerts section found...')
 
+    #New and updated content
+    trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+    coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+    coretitle.text = 'New and Updated content'
+
     #Dates for your diary    
     try: khbody.append(DatesSection)
     except: 
@@ -123,7 +129,12 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
     except: 
         print('No Tracker section found...')       
         LogOutput('No Tracker section found...')  
-        
+
+    #QAs
+    trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
+    coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
+    coretitle.text = 'New Q&As'
+
     #Useful information
     try: khbody.append(UsefulInfoSection)
     except: 
@@ -206,8 +217,8 @@ def LogOutput(message):
 logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
 templateFilepath = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Templates\\All Highlights Template.xml'
 #outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
