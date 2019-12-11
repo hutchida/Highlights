@@ -27,16 +27,29 @@ def XLSAddFormat(PA):
     
     thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
 
-    for col in worksheet.columns:
-        max_length = 0
-        column = col[0].column # Get the column name
-        if column in ['B', 'F', 'G']: worksheet.column_dimensions[column].width = 50
-        else:
-            if column == 'C': worksheet.column_dimensions[column].width = 60
-            else: worksheet.column_dimensions[column].width = 20
+    #for col in worksheet.columns:
+    #    max_length = 0
+    #    column = str(col[0].column) # Get the column name
+    #    print('Column: ' + column)
+    #    if column in ['B', 'F', 'G']: worksheet.column_dimensions[column].width = 50
+    #    else:
+    #        if column == 'C': worksheet.column_dimensions[column].width = 60
+            #else: worksheet.column_dimensions[column].width = 20
+
+    worksheet.column_dimensions['A'].width = 20
+    worksheet.column_dimensions['B'].width = 50
+    worksheet.column_dimensions['C'].width = 60
+    worksheet.column_dimensions['D'].width = 20
+    worksheet.column_dimensions['E'].width = 20
+    worksheet.column_dimensions['F'].width = 50
+    worksheet.column_dimensions['G'].width = 50
+    worksheet.column_dimensions['H'].width = 20
+    worksheet.column_dimensions['I'].width = 20
+    worksheet.column_dimensions['J'].width = 20
         
     worksheet.sheet_view.zoomScale = 80
-    print(column)
+    #print(column)
+    ListOfRowsWithDateDiffs = []
     for rows in worksheet.iter_rows(min_row=1, min_col=1):
         for cell in rows:                
             rowNumber = re.search('^\D(.*)',cell.coordinate).group(1)
@@ -48,19 +61,43 @@ def XLSAddFormat(PA):
                 worksheet[cell.coordinate].fill = PatternFill(fgColor="ccddff", fill_type = "solid") #if yes fill cell contents with color
             else:
                 worksheet[cell.coordinate].fill = PatternFill(fgColor="ffffff", fill_type = "solid") #turn white background
+            if colNumber == 'K':
+                if str(cell.value) == 'True':                    
+                    ListOfRowsWithDateDiffs.append(rowNumber)
+                    print(str(cell.value))
+                    worksheet[cell.coordinate].fill = PatternFill(fgColor="ffff00", fill_type = "solid") #if yes fill cell contents with color
+
             if colNumber == 'J': 
-                print('cell %s %s' % (cell.coordinate,cell.value))    
+                #print('cell %s %s' % (cell.coordinate,cell.value))    
                 worksheet[cell.coordinate].hyperlink = cell.value
                 worksheet[cell.coordinate].value="View on PSL"   
                 worksheet[cell.coordinate].font = Font(color=colors.BLUE, bold=True) 
-                print('cell %s %s' % (cell.coordinate,cell.value))    
-                print(colNumber)  
+                #print('cell %s %s' % (cell.coordinate,cell.value))    
+                #print(colNumber)  
                 
+    #loop through rows again to highlight any rows that have dates that are different from eachother
+    for rows in worksheet.iter_rows(min_row=1, min_col=1):
+        for cell in rows:                
+            rowNumber = re.search('^\D(.*)',cell.coordinate).group(1)
+            if rowNumber in ListOfRowsWithDateDiffs:
+                worksheet[cell.coordinate].fill = PatternFill(fgColor="ffff00", fill_type = "solid") 
 
+            if colNumber == 'J': 
+                #print('cell %s %s' % (cell.coordinate,cell.value))    
+                worksheet[cell.coordinate].hyperlink = cell.value
+                worksheet[cell.coordinate].value="View on PSL"   
+                worksheet[cell.coordinate].font = Font(color=colors.BLUE, bold=True) 
+                #print('cell %s %s' % (cell.coordinate,cell.value))    
+                #print(colNumber)  
     
     #worksheet.set_column(excel_header, 20)
-    worksheet.auto_filter.ref = "A:J"
-    wb.save(XLSFilepath)
+
+    worksheet.column_dimensions['K'].hidden= True #hide column    worksheet.auto_filter.ref = "A:J"
+    try: wb.save(XLSFilepath)
+    except PermissionError: 
+        print('COULD NOT EXPORT DUE TO PERMISSION ERROR: ' + XLSFilepath)
+        LogOutput('COULD NOT EXPORT DUE TO PERMISSION ERROR: ' + XLSFilepath)
+    #wait = input("PAUSED...when ready press enter")
 
 def CSVGeneration(PA, highlightDate, highlightType, df, outputDir):
     constantPA = PA            
@@ -80,8 +117,11 @@ def CSVGeneration(PA, highlightDate, highlightType, df, outputDir):
     #dfPA = dfPA.sort_values(['Title'], ascending = True)
     dfPA = dfPA.sort_values(['IssueDate'], ascending = False)
     #dfPA.to_csv(CSVFilepath, index=False, encoding='utf-8')
-    dfPA.to_excel(XLSFilepath, index=False, encoding='utf-8')
+    try: dfPA.to_excel(XLSFilepath, index=False, encoding='utf-8')
     #print('CSV exported to...' + CSVFilepath)
+    except PermissionError: 
+        print('COULD NOT REFORMAT DUE TO PERMISSION ERROR: ' + XLSFilepath)
+        LogOutput('COULD NOT REFORMAT DUE TO PERMISSION ERROR: ' + XLSFilepath)
     #LogOutput('CSV exported to...' + CSVFilepath)
     print('XLS exported to...' + XLSFilepath)
     LogOutput('XLS exported to...' + XLSFilepath)
@@ -114,8 +154,6 @@ reportDir = '\\\\atlas\\Knowhow\\AutomatedContentReports\\NewsReport\\'
 
 #logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
 logDir = "\\\\atlas\\lexispsl\\Highlights\\dev\\Automatic creation\\Logs\\"    
-#logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
-#outputDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\xml\\Practice Areas\\'
 #outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
 outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
@@ -178,7 +216,7 @@ def ExtractFromNewsFeed():
             else: DatesDifferent = "False"
             try: newsSources = etree.tostring(newsItem.find(".//source-links"), encoding="unicode")
             except TypeError: newsSources = ''
-            for newsURL in newsItem.findall(".//url"): newsURLString += newsURL.get('address') + ' \n\n'
+            for newsURL in newsItem.findall(".//url"): newsURLString += str(newsURL.get('address')) + ' \n\n'
             for newsPA in newsItem.findall(".//practice-area"):
                 dictionary_row = {"Title":newsTitle,"Citation":newsCitation,"MiniSummary":newsMiniSummary,"IssueDate":newsDate,"PubDate":newsPubDate,"Sources":newsSources,"URLs":newsURLString,"PA":newsPA.text,"DatesDifferent":DatesDifferent, "Link":newsLink}
                 df = df.append(dictionary_row, ignore_index=True)        
@@ -190,8 +228,8 @@ def ExtractFromNewsFeed():
     df.to_csv(logDir + 'all-pas-news-list.csv', index=False)
     return df
 
-df = ExtractFromNewsFeed()
-
+ExtractFromNewsFeed()
+df = pd.read_csv(logDir + 'all-pas-news-list.csv')
 
 LogOutput("\nNews CSV guide generation for weekly highlights...\n")
  
