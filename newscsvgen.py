@@ -82,14 +82,6 @@ def XLSAddFormat(PA):
             if rowNumber in ListOfRowsWithDateDiffs:
                 worksheet[cell.coordinate].fill = PatternFill(fgColor="ffff00", fill_type = "solid") 
 
-            if colNumber == 'J': 
-                #print('cell %s %s' % (cell.coordinate,cell.value))    
-                worksheet[cell.coordinate].hyperlink = cell.value
-                worksheet[cell.coordinate].value="View on PSL"   
-                worksheet[cell.coordinate].font = Font(color=colors.BLUE, bold=True) 
-                #print('cell %s %s' % (cell.coordinate,cell.value))    
-                #print(colNumber)  
-    
     #worksheet.set_column(excel_header, 20)
 
     worksheet.column_dimensions['K'].hidden= True #hide column    worksheet.auto_filter.ref = "A:J"
@@ -154,8 +146,8 @@ reportDir = '\\\\atlas\\Knowhow\\AutomatedContentReports\\NewsReport\\'
 
 #logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
 logDir = "\\\\atlas\\lexispsl\\Highlights\\dev\\Automatic creation\\Logs\\"    
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
 
 search = 'https://www.lexisnexis.com/uk/lexispsl/tax/search?pa=arbitration%2Cbankingandfinance%2Ccommercial%2Ccompetition%2Cconstruction%2Ccorporate%2Ccorporatecrime%2Cdisputeresolution%2Cemployment%2Cenergy%2Cenvironment%2Cfamily%2Cfinancialservices%2Cimmigration%2Cinformationlaw%2Cinhouseadvisor%2Cinsuranceandreinsurance%2Cip%2Clifesciences%2Clocalgovernment%2Cpensions%2Cpersonalinjury%2Cplanning%2Cpracticecompliance%2Cprivateclient%2Cproperty%2Cpropertydisputes%2Cpubliclaw%2Crestructuringandinsolvency%2Criskandcompliance%2Ctax%2Ctmt%2Cwillsandprobate&submitOnce=true&wa_origin=paHomePage&wordwheelFaces=daAjax%2Fwordwheel.faces&query='
 
@@ -176,7 +168,7 @@ l.close()
 
 print('Writing log here: ' + JCSLogFile)
 
-highlightDate = str(time.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day   
+highlightDate = str(time.strftime("%#d %B %Y %p")) #the hash character turns off the leading zero in the day   
 
 #main script
 print("Today's date is: " + highlightDate)

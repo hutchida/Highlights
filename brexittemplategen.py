@@ -557,30 +557,13 @@ def LogOutput(message):
     l.write(message + '\n')
     l.close()
 
-def formatEmail(reciever_email):
+def formatEmail(Subject, HTML):
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Brexit highlights report - READY"
+    msg["Subject"] = Subject
     msg["From"] = sender_email
-    msg["To"] = receiver_email
+    msg["To"] = receiver_email    
 
-
-    html = """\
-<html>
-    <head>
-        <title>Brexit highlights report</title>
-    </head>
-    <body>
-        <div style="font-size: 200%; text-align: center;">
-            <p>The Brexit highlights template is now ready: <br />
-			<a href="file://///atlas/lexispsl/Highlights/Practice Areas/Brexit/" target="_blank">\\\\atlas\lexispsl\Highlights\Practice Areas\Brexit\</a></p>
-			<sup>See the log for more details: <br />
-			<a href="file://///atlas/lexispsl/Highlights/Automatic creation/Logs/JCSlog-brexittemplategen.txt" target="_blank">\\\\atlas\lexispsl\Highlights\Automatic creation\Logs\JCSlog-brexittemplategen.txt</a></sup>
-        </div>
-    </body>
-</html>
-    """
-
-    HTMLPart = MIMEText(html, "html")
+    HTMLPart = MIMEText(HTML, "html")
     msg.attach(HTMLPart)
     return msg
 
@@ -592,7 +575,7 @@ def sendEmail(msg, receiver_email):
 #Email info
 sender_email = 'LNGUKPSLDigitalEditors@ReedElsevier.com'
 receiver_email_list = ['LNGUKPSLDigitalEditors@ReedElsevier.com', 'holly.nankivell@lexisnexis.co.uk', 'louis.payne@lexisnexis.co.uk', 'anne.kingsley@lexisnexis.co.uk', 'Cristiana.Rossetti@lexisnexis.co.uk', 'michael.agnew@lexisnexis.co.uk', 'james-john.dwyer-wilkinson@lexisnexis.co.uk']
-
+#receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk']
 #Directories
 logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
 templateFilepath = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Templates\\All Highlights Template.xml'
@@ -628,6 +611,7 @@ l.close()
 highlightDate = str(givendate.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
 print('Generating Brexit templates for tomorrow: ' + highlightDate)
 LogOutput('Generating Brexit templates for tomorrow: ' + highlightDate)
+PrevTemplateError=0
 
 if PublicLawFilepath != 'na':
     print('Most recent Public Law highlight doc to harvest: \n' + PublicLawFilepath)
@@ -635,22 +619,68 @@ if PublicLawFilepath != 'na':
 else:
     print('Problem encountered trying to find the most recent Public Law weekly highlight doc in: ' + outputDir + 'Public Law\\' + ' with the pattern *preview.xml')
     LogOutput('Problem encountered trying to find the most recent Public Law weekly highlight doc in: ' + outputDir + 'Public Law\\' + ' with the pattern *preview.xml')
+    PrevTemplateError+=1
 if BrexitTemplateFilepath != 'na':
     print('Most recent Brexit template  to harvest: \n' + BrexitTemplateFilepath)
     LogOutput('Most recent Brexit template  to harvest: \n' + BrexitTemplateFilepath)
 else:
     print('Problem encountered trying to find the most recent Brexit highlight doc in: ' + outputDir + 'Brexit\\' + ' with the pattern *preview.xml')
     LogOutput('Problem encountered trying to find the most recent Brexit highlight doc in: ' + outputDir + 'Brexit\\' + ' with the pattern *preview.xml')
+    PrevTemplateError+=1
 
+if PrevTemplateError==0:
+    PA = 'Brexit'
+    TemplateGeneration(PA, highlightDate, highlightType, outputDir, NSMAP)
 
-PA = 'Brexit'
-TemplateGeneration(PA, highlightDate, highlightType, outputDir, NSMAP)
+    Subject = "Brexit highlights report - READY"
+    HTML = """\
+<html>
+    <head>
+        <title>Brexit highlights report</title>
+    </head>
+    <body>
+        <div style="font-size: 100%; text-align: center;">
+            <p>The Brexit highlights template is now ready: <br />
+			<a href="file://///atlas/lexispsl/Highlights/Practice Areas/Brexit/" target="_blank">\\\\atlas\lexispsl\Highlights\Practice Areas\Brexit\</a></p>
+			<sup>See the log for more details: <br />
+			<a href="file://///atlas/lexispsl/Highlights/Automatic creation/Logs/JCSlog-brexittemplategen.txt" target="_blank">\\\\atlas\lexispsl\Highlights\Automatic creation\Logs\JCSlog-brexittemplategen.txt</a></sup>
+        </div>
+    </body>
+</html>
+    """
 
-#create and send email
-for receiver_email in receiver_email_list:
-    msg = formatEmail(receiver_email)
-    sendEmail(msg, receiver_email)
-
+    #create and send email
+    for receiver_email in receiver_email_list:
+        msg = formatEmail(Subject, HTML)
+        sendEmail(msg, receiver_email)
+else:
+    Subject = "Brexit highlights report - NOT READY"
+    HTML = """\
+<html>
+    <head>
+        <title>Brexit highlights report - NOT READY</title>
+    </head>
+    <body>
+        <div style="font-size: 100%; text-align: left;">
+            <p>The Brexit Highlights script has not run as last week’s public law and/or Brexit highlight have not been downloaded and saved in their folders by 2.30pm on a Thursday in:</p>
+			<p><a href="file://///atlas/lexispsl/Highlights/Practice Areas/Brexit/" target="_blank">\\\\atlas\lexispsl\Highlights\Practice Areas\Brexit\</a><br />
+            <a href="file://///atlas/lexispsl/Highlights/Practice Areas/Public Law/" target="_blank">\\\\atlas\lexispsl\Highlights\Practice Areas\Public Law\</a></p>
+			<p>or the filename has been amended from the name given by echo (containing '*preview.xml').</p>
+            <p>Please download these files or amend the filenames and reply to this email to request the automation script to be rerun.</p>
+            <br/><br/>
+            <sup>See the log for more details: <br />
+			<a href="file://///atlas/lexispsl/Highlights/Automatic creation/Logs/JCSlog-brexittemplategen.txt" target="_blank">\\\\atlas\lexispsl\Highlights\Automatic creation\Logs\JCSlog-brexittemplategen.txt</a></sup>
+        </div>
+    </body>
+</html>
+    """
+    #create and send email
+    for receiver_email in receiver_email_list:
+        msg = formatEmail(Subject, HTML)
+        sendEmail(msg, receiver_email)
+    
+    print("Problem with the previous week's highlights docs not being present, email sent to distribution list...")
+    LogOutput("Problem with the previous week's highlights docs not being present, email sent to distribution list...")
 #wait = input("PAUSED...when ready press enter")
 print('Finished')
 LogOutput('Finished')

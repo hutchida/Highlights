@@ -73,7 +73,8 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                         newsPubDate = dfTopic.PubDate.iloc[x]
                         newsMiniSummary = dfTopic.MiniSummary.iloc[x]
                         newsSources = dfTopic.Sources.iloc[x]
-                        newsURLs = dfTopic.URLs.iloc[x]
+                        try: newsURLs = dfTopic.URLs.iloc[x]
+                        except AttributeError: newsURLs = 'nan'
                         #News
                         trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
                         coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
@@ -166,8 +167,10 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                 #Insert news items into template file in the watched folder
                 templateFilepath = FindMostRecentFile(outputDir + constantPA + '\\Auto-generate XML\\', '*.xml')            
                 if templateFilepath != 'na': 
-                    templateFilepathDate = re.search('template (.*) test',templateFilepath).group(1) 
-                    postConversionTemplateFilepath = outputDir + constantPA + '\\' + constantPA + ' Weekly highlights template ' + templateFilepathDate + ' test.xml'
+                    #templateFilepathDate = re.search('template (.*) test',templateFilepath).group(1) 
+                    
+                    postConversionTemplateFilename = re.search(r'.*\\(.*)', templateFilepath).group(1)
+                    postConversionTemplateFilepath = outputDir + constantPA + '\\' + postConversionTemplateFilename
 
                     templatetree = etree.parse(templateFilepath).getroot()         
                     try:
@@ -182,11 +185,11 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                     tree = etree.ElementTree(templatetree)
                     tree.write(postConversionTemplateFilepath, encoding="utf-8", xml_declaration=True, doctype='<!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd">')    
                     
-                    print('Template XML converted and exported to...' + templateFilepath)
-                    LogOutput('Template XML converted and exported to...' + templateFilepath)
+                    print('Template XML converted and exported to...' + postConversionTemplateFilepath)
+                    LogOutput('Template XML converted and exported to:\n' + postConversionTemplateFilepath)
                     os.remove(templateFilepath) #Delete old file
-                    print('Deleted: ' + templateFilepath)
-                    LogOutput('Deleted: ' + templateFilepath)
+                    print('Deleted old template file: ' + templateFilepath)
+                    LogOutput('Deleted old template file:\n' + templateFilepath)
                 else:                    
                     print('No Template supplied for: ' + constantPA)
                     LogOutput('No Template supplied for: ' + constantPA)
@@ -197,7 +200,7 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                 shutil.copy(XLSFilepath, XLSarchiveFilepath) #Copy
                 os.remove(XLSFilepath) #Delete old file
                 print('Moved: ' + XLSFilepath + ', to: ' + XLSarchiveFilepath)
-                LogOutput('Moved: ' + XLSFilepath + ', to: ' + XLSarchiveFilepath)
+                LogOutput('Moved: ' + XLSFilepath + '\nto: ' + XLSarchiveFilepath)
                 
         except AttributeError: 
             print('XLSX found but filename not in the expected format: ' + XLSFilepath)
