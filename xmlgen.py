@@ -13,9 +13,10 @@ import datetime
 import sys
 import xml.etree.ElementTree as ET
 from lxml import etree
+import shutil
 
 def DFCleanup(df, ShortcutTypeList, ReportType):
-    LogOutput('Entering DFCleanup...')
+    log('Entering DFCleanup...')
     df1 = pd.DataFrame()
     i=0
     for index, row in df.iterrows(): #loop through df deconstruct/reconstruct
@@ -36,13 +37,13 @@ def DFCleanup(df, ShortcutTypeList, ReportType):
         i=i+1 #increment the counter   
     df1.columns = ["DocID", "ContentItemType", "PA", "OriginalContentItemPA", "DocTitle", "UnderReview"]   
     #df1.to_csv(ReportType + '.csv', sep=',',index=False) 
-    LogOutput('DFCleanup complete...')
+    log('DFCleanup complete...')
     return df1
 
     
 def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir):
     constantPA = PA        
-    
+    log('\n' + PA)
     NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
 
     if PA == 'Life Sciences': PA = 'Life Sciences and Pharmaceuticals'
@@ -81,8 +82,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
             dfNew = dfNewHighlights[(dfNewHighlights.PA ==PA) & (dfNewHighlights.ContentItemType == ContentType)] 
             dfNew = dfNew.sort_values(['DocTitle'], ascending = True)
             newHighlightCount = len(dfNew)
-            print(PA, ContentType, newHighlightCount, 'new docs')   
-            LogOutput(PA + ', ' + ContentType + ', ' + str(newHighlightCount) + ' new docs')
+            log(ContentType + ', ' + str(newHighlightCount) + ' new docs')
             if ContentType == 'Precedent':
                 if newHighlightCount > 1: ContentTypeHeader = 'New Precedents'
                 else: ContentTypeHeader = 'New Precedent'
@@ -133,6 +133,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
                     if UnderReview == True:
                         comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
                         corepara.append(comment) #add comment after link
+    
 
     #Updated  
     if len(dfUpdateHighlights[(dfUpdateHighlights.PA ==PA) & (dfUpdateHighlights.ContentItemType != 'QandAs')]) > 0: #if there are any new docs for the PA, create new doc section 
@@ -141,8 +142,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
             dfUpdate = dfUpdateHighlights[(dfUpdateHighlights.PA ==PA) & (dfUpdateHighlights.ContentItemType == ContentType)] 
             dfUpdate = dfUpdate.sort_values(['DocTitle'], ascending = True)
             updateHighlightCount = len(dfUpdate)
-            print(PA, ContentType, updateHighlightCount, 'updates') 
-            LogOutput(PA + ', ' + ContentType + ', ' + str(updateHighlightCount) + ' updates')
+            log(ContentType + ', ' + str(updateHighlightCount) + ' updates')
             if ContentType == 'Precedent': 
                 if updateHighlightCount > 1: ContentTypeHeader = 'Updated Precedents'
                 else: ContentTypeHeader = 'Updated Precedent'
@@ -194,15 +194,14 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
                         comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
                         corepara.append(comment) #add comment after link
     
-    
+    newAndUpdateContentSection = trsecmain
    
     #QAs should only ever be new
         
     dfNew = dfNewHighlights[(dfNewHighlights.PA ==PA) & (dfNewHighlights.ContentItemType == 'QandAs')] 
     dfNew = dfNew.sort_values(['DocTitle'], ascending = True)
-    newHighlightCount = len(dfNew)
-    print(PA, newHighlightCount, 'new QAs')     
-    LogOutput(PA + ', ' + str(newHighlightCount) + ' new QAs')
+    newHighlightCount = len(dfNew)    
+    log(str(newHighlightCount) + ' new QAs')
     if newHighlightCount > 0:            
         trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
         coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
@@ -226,8 +225,7 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
                 try: pguid = tag.get('pguid')    
                 except AttributeError: 
                     pguid = 'notfound'
-                    print('Not found on pguid look up list: ' + str(DocID) + str(DocTitle)) 
-                    LogOutput('Not found on pguid look up list: ' + str(DocID) + str(DocTitle))        
+                    log('Not found on pguid look up list: ' + str(DocID) + str(DocTitle))        
                 #print(DocID, DocTitle, ContentType, dpsi, pguidlookup, pguid)              
             except: pguid = 'notfound'
 
@@ -243,18 +241,17 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
             if UnderReview == True:
                 comment = etree.Comment('Doc ID: ' + str(DocID) + ' UNDER REVIEW: ' + str(UnderReview))
                 corepara.append(comment) #add comment after link
-
-    
-
-    tree = etree.ElementTree(khdoc)
-    xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' New and Updated content ' + highlightDate + ' test.xml'
-    tree.write(xmlfilepath,encoding='utf-8')
+    QAsSection = trsecmain
+    #stick a standalone copy in the archive directory regardless
+    tree = etree.ElementTree(khdoc)  
+    #create standalone xml as backup
+    xmlfilepath = outputDir + constantPA + '\\archive\\'    + constantPA + ' New and Updated content ' + highlightDate + '.xml'             
+    tree.write(xmlfilepath, encoding="utf-8", xml_declaration=True, doctype=doctype)
 
     f = open(xmlfilepath,'r', encoding='utf-8')
     filedata = f.read()
     f.close()
     newdata = filedata  
-    newdata = newdata.replace("<kh:document ","""<?xml version="1.0" encoding="UTF-8"?><!--Arbortext, Inc., 1988-2013, v.4002--><!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd"><?Pub EntList mdash reg #8364 #176 #169 #8230 #10003 #x2610 #x2611 #x2612 #x2613?><?Pub Inc?><kh:document """)#<kh:document xmlns:core="http://www.lexisnexis.com/namespace/sslrp/core" xmlns:fn="http://www.lexisnexis.com/namespace/sslrp/fn" xmlns:header="http://www.lexisnexis.com/namespace/uk/header" xmlns:kh="http://www.lexisnexis.com/namespace/uk/kh" xmlns:lnb="http://www.lexisnexis.com/namespace/uk/lnb" xmlns:lnci="http://www.lexisnexis.com/namespace/common/lnci" xmlns:tr="http://www.lexisnexis.com/namespace/sslrp/tr">""")
     newdata = newdata.replace("[PA]", constantPA)
     newdata = newdata.replace("Life Sciences and Pharmaceuticals", "Life Sciences")
     newdata = newdata.replace("[weekly/monthly]", highlightType)
@@ -267,9 +264,118 @@ def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighli
     f.write(newdata)
     f.close()
 
-    print('XML exported to...' + xmlfilepath)
-    LogOutput('XML exported to...' + xmlfilepath)
-   
+    #insert new and updated content into existing template in the auto gen folder
+    templateFilepath = FindMostRecentFile(outputDir + constantPA + '\\Auto-generate XML\\', '*template.xml')
+    if templateFilepath == 'na': templateFilepath = FindMostRecentFile(outputDir + constantPA + '\\Auto-generate XML\\', '*draft.xml')
+    if templateFilepath != 'na':
+        templateFilename = re.search('.*\\\\([^\.]*\..*)',templateFilepath).group(1) 
+        templateOutputFilepath = outputDir + constantPA + '\\' + templateFilename #output to one folder up
+    
+        listOfFiles = ListOfFilesInDirectory(outputDir + constantPA + '\\Auto-generate XML\\', '*.xml')
+        
+        templateInsertionSuccessful = False #default
+        print(templateFilepath)
+        templateroot = etree.parse(templateFilepath).getroot() 
+        templateKHbody = templateroot.find('.//kh:body', NSMAP)    #find element of elements where insertion will be   
+        for trsecmain in templateKHbody.findall('.//tr:secmain', NSMAP):
+            coretitle = trsecmain.find('core:title', NSMAP)
+            parent = trsecmain.getparent() #set parent 
+            coretitle_text = coretitle.text
+            print(coretitle_text.lower())
+            if coretitle_text.lower() == 'new and updated content':                           
+                #try:
+                print(parent.index(trsecmain))
+                templateKHbody.insert(parent.index(trsecmain), newAndUpdateContentSection) #insert new and updated content at position of existing placeholder, using index
+                templateKHbody.remove(trsecmain) #delete existing placeholder
+                #except:
+                #    print('Problem inserting new and updated sections into the template...')
+                #    log('Problem inserting new and updated sections into the template...')
+            if coretitle.text == 'New Q&As':         
+                #try:       
+                print(parent.index(trsecmain))
+                templateKHbody.insert(parent.index(trsecmain), QAsSection) #insert QA content at position of existing placeholder, using index
+                parent = trsecmain.getparent() #delete existing placeholder
+                templateKHbody.remove(trsecmain)
+                #except:
+                #    print('Problem inserting QA sections into the template...')
+                #    log('Problem inserting QA sections into the template...')
+        templatetree = etree.ElementTree(templateroot)
+        templatetree.write(templateOutputFilepath, encoding="utf-8", xml_declaration=True, doctype=doctype)    
+        log('Insertion into template successful: \n' + templateOutputFilepath)
+        templateInsertionSuccessful = True
+
+        backup_template_filepath = outputDir + constantPA + '\\archive\\backup_' + templateFilename
+        shutil.copy(templateFilepath, backup_template_filepath)
+        log('Created backup of dropped template: \n' + backup_template_filepath)
+
+        try:
+            for existingFilepath in listOfFiles:
+                os.remove(existingFilepath) #Delete old file
+                log('Deleted from auto-gen folder: \n' + existingFilepath)
+        except:
+            log('Problem deleting: \n' + existingFilepath)
+
+    else: 
+        log('No template xml file found in auto-gen folder...')
+        templateInsertionSuccessful = False 
+
+
+    if templateInsertionSuccessful == False: 
+        #REMOVE ONCE ALL DOING WEEKLY
+        if PA in MonthlyPAs:
+            xmlfilepath = outputDir + constantPA + '\\weekly\\' + constantPA + ' New and Updated content ' + highlightDate + '.xml'
+        else:
+            xmlfilepath = outputDir + constantPA + '\\' + constantPA + ' New and Updated content ' + highlightDate + '.xml'
+
+        try: tree.write(xmlfilepath, encoding="utf-8", xml_declaration=True, doctype=doctype)
+        except PermissionError: log('Permission error encountered, cannot write to ' + xmlfilepath)
+
+    f = open(xmlfilepath,'r', encoding='utf-8')
+    filedata = f.read()
+    f.close()
+    newdata = filedata  
+    #newdata = newdata.replace("<kh:document ","""<?xml version="1.0" encoding="UTF-8"?><!--Arbortext, Inc., 1988-2013, v.4002--><!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd"><?Pub EntList mdash reg #8364 #176 #169 #8230 #10003 #x2610 #x2611 #x2612 #x2613?><?Pub Inc?><kh:document """)#<kh:document xmlns:core="http://www.lexisnexis.com/namespace/sslrp/core" xmlns:fn="http://www.lexisnexis.com/namespace/sslrp/fn" xmlns:header="http://www.lexisnexis.com/namespace/uk/header" xmlns:kh="http://www.lexisnexis.com/namespace/uk/kh" xmlns:lnb="http://www.lexisnexis.com/namespace/uk/lnb" xmlns:lnci="http://www.lexisnexis.com/namespace/common/lnci" xmlns:tr="http://www.lexisnexis.com/namespace/sslrp/tr">""")
+    newdata = newdata.replace("[PA]", constantPA)
+    newdata = newdata.replace("Life Sciences and Pharmaceuticals", "Life Sciences")
+    newdata = newdata.replace("[weekly/monthly]", highlightType)
+    newdata = newdata.replace("[dd Month yyyy]", highlightDate)
+    if highlightType == 'weekly':
+        newdata = newdata.replace("[week's/month's]", "week's")
+    if highlightType == 'monthly':
+        newdata = newdata.replace("[week's/month's]", "month's")
+    try: 
+        f = open(xmlfilepath,'w', encoding='utf-8')
+        f.write(newdata)
+        f.close()
+    except PermissionError: log('Permission error encountered, cannot write to ' + xmlfilepath)
+
+
+    log('Standalone XML exported to: \n' + xmlfilepath + '\n')
+
+def ListOfFilesInDirectory(directory, pattern):
+    existingList = []
+    filelist = glob.iglob(os.path.join(directory, pattern)) #builds list of file in a directory based on a pattern
+    for filepath in filelist: existingList.append(filepath)        
+    return existingList
+
+def Archive(listOfFiles, reportDir):
+    copyList = []
+    archiveDir = reportDir + 'Archive\\'
+
+    #Check archive folder exists
+    if os.path.isdir(archiveDir) == False:
+        os.makedirs(archiveDir)
+
+    for existingFilepath in listOfFiles:
+        print(existingFilepath)
+        directory = re.search('(.*\\\\)[^\.]*\.xml',existingFilepath).group(1)
+        filename = re.search('.*\\\\([^\.]*\.xml)',existingFilepath).group(1)
+        destinationFilepath = directory + 'Archive\\' + filename
+        shutil.copy(existingFilepath, destinationFilepath) #Copy
+        os.remove(existingFilepath) #Delete old file
+        copyList.append('Moved: ' + existingFilepath + ', to: ' + destinationFilepath)
+    return copyList
+
 
 def FindMostRecentFile(directory, pattern):
     try:
@@ -292,31 +398,52 @@ def IsThursday(givendate):
     else: return False
 
 
-def LogOutput(message):
+def log(message):
     l = open(JCSLogFile,'a')
     l.write(message + '\n')
     l.close()
+    print(message)
 
 
-#Directories
-#reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
-reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
-#reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
-logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"    
-#outputDir = 'xml\\Practice Areas\\'
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+
+#Updated 090420 1351 - monthly pas now outputting as weeklies but to respective weekly folder
+#Updated 170420 1024 - fixed issue with empty standalone xml going to archive folder
+# change xmlgen to look for variations of 'new and updated content' header - 230420 1055
+# change xmlgen to look for dropped template filename rather than predicted template filename - 230420 1055
+# change xmlgen to stop search and replace of xml header, which was corrupting standalone new and updated xml - 230420 1055
+# add to xmlgen logging of insertion - 230420 1055
+# create backup of template in archive folder - 230420 1055
+#290420 1636 - added line to accept *draft.xml in the autogen folder
+
+#state = 'livedev'
+state = 'live'
+
+if state == 'live':
+    logDir = "\\\\atlas\\lexispsl\\Highlights\\logs\\" 
+    reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
+    outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
+    givendate = datetime.datetime.today()
+    givenstrdate =  str(time.strftime("%Y-%m-%d"))
+
+if state == 'livedev':
+    logDir = "\\\\atlas\\lexispsl\\Highlights\\dev\\logs\\" 
+    #reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
+    reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
+    outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+    givenstrdate =  "2020-4-30"
+    givendate = datetime.date(2020, 4, 30)    
+    #givendate = datetime.datetime.today()
+    givenstrdate =  str(time.strftime("%Y-%m-%d"))
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
+#AllPAs = ['Life Sciences and Pharmaceuticals']    
+#AllPAs = ['Energy', 'Environment', 'Financial Services', 'Information Law', 'IP', 'Life Sciences and Pharmaceuticals', 'Tax', 'TMT']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 ShortcutTypeList = ['SubtopicShortcut', 'Shortcut', 'SubtopicShortcutOfShortcut']
 MonthlyDates = ['2019-11-29', '2019-12-20', '2020-01-31', '2020-02-28', '2020-03-31', '2020-04-29', '2020-05-29', '2020-06-30', '2020-07-31', '2020-08-28', '2020-09-30', '2020-10-30', '2020-11-30', '2020-12-18']
-#givendate is auto generated by datetime.datetime.today(), but if you need to manually override it you can set it with datetime.date(year, month, day)
-givendate = datetime.datetime.today()
-givenstrdate =  str(time.strftime("%Y-%m-%d"))
-#givendate = datetime.date(2019, 12, 12)
+doctype = '<!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd">'
 
 #print(givendate)
 #print('Is last working day of the month:' + str(IsLastWorkingDayOfMonth(givendate)))
@@ -330,11 +457,9 @@ l.close()
 
 
 #main script
-print("Today's date is: " + str(givendate))
-LogOutput("Today's date is: " + str(givendate))
+log("Today's date is: " + str(givendate))
 if str(givenstrdate) in MonthlyDates:
-    print("\nXML auto-generation for monthly highlights...\n")
-    LogOutput("\nXML auto-generation for monthly highlights...\n")
+    log("\nXML auto-generation for monthly highlights...\n")
     monthlyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     monthlyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_monthly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     dfUpdateHighlights = DFCleanup(pd.read_csv(monthlyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
@@ -344,29 +469,25 @@ if str(givenstrdate) in MonthlyDates:
     for PA in MonthlyPAs:
         XMLGenerationWeekly(PA, highlightDate, 'monthly', dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
 else: 
-    print('Today is not a date in the monthly highlights list of dates...skipping monthly highlight xml generation...')
-    LogOutput('Today is not a date in the monthly highlights list of dates...skipping monthly highlight xml generation...')
+    log('Today is not a date in the monthly highlights list of dates...skipping monthly highlight xml generation...')
 
 if IsThursday(givendate) == True:
-    print("\nXML auto-generation for weekly highlights...\n")
-    LogOutput("\nXML auto-generation for weekly highlights...\n")
+    log("\nXML auto-generation for weekly highlights...\n")
     weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     weeklyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
     dfUpdateHighlights = DFCleanup(pd.read_csv(weeklyUpdateReportFilepath), ShortcutTypeList, reportDir + 'update')
     dfNewHighlights = DFCleanup(pd.read_csv(weeklyNewReportFilepath), ShortcutTypeList, reportDir + 'new')
     highlightDate = str(time.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
+    #highlightDate = '26 March 2020'
     dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')    
     for PA in AllPAs:
-        if PA not in MonthlyPAs:
-            XMLGenerationWeekly(PA, highlightDate, 'weekly', dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
+        #if PA not in MonthlyPAs:
+        XMLGenerationWeekly(PA, highlightDate, 'weekly', dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
 else: 
-    print('Today is not a Thursday...skipping weekly highlight xml generation...')
-    LogOutput('Today is not a Thursday...skipping weekly highlight xml generation...')
+    log('Today is not a Thursday...skipping weekly highlight xml generation...')
 
 
-
-print('Finished')
-LogOutput('Finished')
+log('Finished')
 
 
 #wait = input("PAUSED...when ready press enter")

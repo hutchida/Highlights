@@ -1,5 +1,5 @@
 #AICER updated content log for highlights, loops through all the most recent AICER report and builds a log based on content updated/new in the last week/month
-#last updated 28.10.19
+#last updated 20.05.20
 #Developed by Daniel Hutchings
 #JR added logfile info 19.08.19
 
@@ -207,10 +207,14 @@ def FindRecentFile(directory, pattern, number):
 
 
 def ListOfFilesInDirectory(directory, pattern):
+    TodaysDate = datetime.date.today()
     existingList = []
     filelist = glob.iglob(os.path.join(directory, pattern)) #builds list of file in a directory based on a pattern
     for filepath in filelist:
-        existingList.append(filepath)
+        if TodaysDate != datetime.datetime.fromtimestamp(os.path.getmtime(filepath)).date(): 
+            existingList.append(filepath)
+        else:
+            print('Following file has date the same as today so not putting it on the To Archive list: ' + filepath)
 
     return existingList
 
@@ -251,15 +255,16 @@ def sendEmail(msg, receiver_email):
 
 #main script
 #reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
-#reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
-reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
+reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
+#reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
-#logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
-logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
-#aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
-aicerDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
-#globalmetricsDir = '\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER_withShortcut_AdHoc\\'
-globalmetricsDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER_Shortcuts\\'
+logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
+#logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
+aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
+#aicerDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
+globalmetricsDir = '\\\\atlas\\knowhow\\PSL_Content_Management\\AICER_Reports\\AICER_withShortcut_AdHoc\\'
+shortcutNodeDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER_Shortcuts\\'
+#globalmetricsDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER_Shortcuts\\'
 #globalmetricsDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
 pguidlistDir = '\\\\lngoxfdatp16vb\\Fabrication\\MasterStore\\PGUID-Lists\\'
 lookupdpsi = '\\\\atlas\\knowhow\\PSL_Content_Management\\Digital Editors\\Lexis_Recommends\\lookupdpsi\\lookup-dpsis.csv'
@@ -276,8 +281,8 @@ l.close()
 print("New and Updated content report for highlights...")
 LogOutput("New and Updated content report for highlights...")
 
-aicerMostRecent = FindMostRecentFile(aicerDir, '*AICER*.csv')
-aicerSecondMostRecent = FindRecentFile(aicerDir, '*AICER*.csv', 1) #1 is the second on the list
+aicerMostRecent = FindRecentFile(aicerDir, '*AICER*.csv', 1)
+aicerSecondMostRecent = FindRecentFile(aicerDir, '*AICER*.csv', 2) #1 is the second on the list
 
 aicerMostRecentSize = os.path.getsize(aicerMostRecent)
 aicerSecondMostRecentSize = os.path.getsize(aicerSecondMostRecent)
@@ -306,7 +311,7 @@ if aicerMostRecentSize + 2000000 < aicerSecondMostRecentSize: #add 2000kb as it'
 
     #Email section
     sender_email = 'LNGUKPSLDigitalEditors@ReedElsevier.com'
-    receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk']#, 'james-john.dwyer-wilkinson@lexisnexis.co.uk', 'LNGUKPSLDigitalEditors@ReedElsevier.com']
+    receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk', 'james-john.dwyer-wilkinson@lexisnexis.co.uk', 'LNGUKPSLDigitalEditors@ReedElsevier.com']
 
     #create and send email
     for receiver_email in receiver_email_list:
@@ -319,7 +324,7 @@ else:
     aicerFilename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',aicerMostRecent).group(1)
     print('Loading the most recent AICER report: ' + aicerFilename)
     LogOutput("Loading the most recent AICER report: " + str(aicerFilename))
-    aicershortcutsFilename = FindMostRecentFile(globalmetricsDir, 'AllContentItemsExportWithShortCutNodeInfo*.csv')
+    aicershortcutsFilename = FindMostRecentFile(shortcutNodeDir, 'AllContentItemsExportWithShortCutNodeInfo*.csv')
     print('Loading the most recent AICER Shortcuts report: ' + aicershortcutsFilename)
     LogOutput("Loading the most recent AICER Shortcuts report: " + str(aicershortcutsFilename))
 

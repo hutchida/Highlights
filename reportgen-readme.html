@@ -1,0 +1,47 @@
+<!DOCTYPE html SYSTEM "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>reportgen.py - Higlights' report generator - guidance</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+            
+    </head>
+    <body><div class="container">
+        <h1>reportgen.py</h1> 
+        <sup>Higlights' report generator - guidance</sup>
+        <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#details">Details</a></li>
+            <li><a href="#needtoknow">Need to know</a></li>
+        </ul>
+        <a name="summary"></a><h3>Summary</h3>
+        <p>The reportgen.py script was developed for the weekly/monthly highlights automation project by Daniel Hutchings. This script is the first in a series that run throughout the week. The xmlgen.py script is directly dependent on this script. This script queries the metadata reports to build a list of new and or updated content throughout the week or month. It generates 4 separate csv files to a network location where the xmlgen.py will pick them up later on.</p>
+        <a name="details"></a><h3>Details</h3>
+        <p>The script's first task is to load the most recent Aicer report in the following location:<br/>\\atlas\lexispsl\Highlights\Automatic creation\AICER\</p>
+        <p>In this location there are the 8 most recent Aicer reports. Every day a new one overwrites the file "AICER.csv", and also creates a dated version in the same location. The script first attempts to compare the size of the most recent Aicer and the third most recent report. If it finds the size of the reports is significantly different then it means the Aicer report has been corrupted during it's creation process and that someone needs to investigate. If a significant size difference is found to be true, an email is sent a list of contacts with the details for investigation.</p>
+        <p>Once the script is certain there are no anomalies in the most recent Aicer report, it is loaded to a dataframe called 'dfaicer'. The script then loads the most recent version of the Aicer report with shortcut node info into a dataframe called 'dfshortcuts', from the following location: <br/>\\atlas\lexispsl\Highlights\Automatic creation\AICER_Shortcuts\</p>
+        <p>With the two dataframes the script calls the 'Filter' function 4 times successively, for each required output: 
+            <br />- a csv of new content over the last week, 
+            <br />- a csv of updated content over the last week,
+            <br />- a csv of new content over the last month,
+            <br />- a csv of updated content over the last month.</p>
+        <p>This 'Filter' function does the following in this order:
+            <br />- filters both dataframes for only the relevant PSL practice areas, 
+            <br />- converts some date fields into datetime objects so comparisons can be made, 
+            <br />- creates a new column which, based on comparison of LastPublishedDate and LastUnderReviewDate shows if the document is under review or not, 
+            <br />- filters dataframe further based on what type of report it is generating, for example, if 'new' content it includes 'QAs', but not if it is is 'updated', 
+            <br />- drops unnecessary original columns, 
+            <br />- creates a more easier to read 'Subtopic' column from topictree columns, 
+            <br />- now loops through filtered dataframe and checks for any entries on the shortcut dataframe, 
+            <br />- creates a new dataframe with the original items and the shortcut items, 
+            <br />- reindexes the columns based on a given column list to tidy things up, 
+            <br />- exports the new dataframe to a dated filename in the following location: \\atlas\lexispsl\Highlights\Automatic creation\New and Updated content report\
+        </p>
+        <p>Once the filtering has taken place and the 4 new csv files are added to the folder, the existing 4 csvs that were in that folder are now archived to the 'Archive' folder.</p>
+        <p>Logs are outputed to the following location: \\atlas\lexispsl\Highlights\Automatic creation\Logs</p>
+        <a name="needtoknow"></a><h3>Need to know</h3>
+        <p>This script runs in the JCS every weekday morning at 6am and takes approximately 50 minutes to complete. The live code can be found here: \\atlas\knowhow\PSL_Content_Management\Digital Editors\Scripts\JCS\reportgen.py</p>
+        <p>In order to help with troublshooting potential failures in this automation project as a whole, it was decided to split scripts up to have clear roles. This is why this reportgen.py script only creates the 4 csvs which feed other scripts. The outputs can be checked at this critical stage when querying the logic behind the data. The outputs can also be potentially useful in this format for other projects if the need arises.</p>
+        <p>This script was developed in mid 2019 by <a href="https://www.linkedin.com/in/danielmhutchings/" target="_blank">Daniel Hutchings</a>. </p>
+    </div>
+    </body>
+</html>

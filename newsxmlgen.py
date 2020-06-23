@@ -23,16 +23,32 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
     XLSFilepath = FindMostRecentFile(outputDir + constantPA + '\\Auto-generate XML\\', '*.xlsx')
     if XLSFilepath != 'na':
         try: 
-            XLSFilepathDate = re.search('news items (.*)\.xlsx',XLSFilepath).group(1) 
-            XLSarchiveFilepath = archiveDir + constantPA + ' news items ' + XLSFilepathDate + '.xlsx'
-            XMLFilepath = outputDir + constantPA + '\\' + constantPA + ' news items ' + highlightDate + ' test.xml'
+            XLSFilename = re.search('.*\\\\([^\.]*\..*)',XLSFilepath).group(1) 
+            XLSarchiveFilepath = archiveDir + XLSFilename            
+            templateFilepath = FindMostRecentFile(outputDir + constantPA + '\\Auto-generate XML\\', '*template.xml')
+            if templateFilepath == 'na': templateFilepath = FindMostRecentFile(outputDir + constantPA + '\\Auto-generate XML\\', '*draft.xml')
+            if templateFilepath != 'na':
+                templateFilename = re.search('.*\\\\([^\.]*\..*)',templateFilepath).group(1) 
+                templateArchiveFilepath = archiveDir + templateFilename  
+                templateroot = etree.parse(templateFilepath).getroot()         
+                print(templateFilepath)
+                templateKHbody = templateroot.find('.//kh:body', NSMAP) 
+                t=0            
+                finalXMLFilename = re.sub('template', 'draft', templateFilename)
+                finalXMLFilepath = outputDir + constantPA + '\\' + finalXMLFilename
+            else: LogOutput('No xml file found in auto-gen folder...')
+
+            #XMLFilepath = archiveDir + constantPA + ' news items ' + highlightDate + ' test.xml' #write it straight out to the archive folder
             LogOutput('\nXLSX filepath to check...' + XLSFilepath)
         
-            dfPA = pd.ExcelFile(XLSFilepath)
+            try: dfPA = pd.ExcelFile(XLSFilepath)
+            except PermissionError: 
+                LogOutput('Permission error for...' + XLSFilepath)
+                print('Permission error for...' + XLSFilepath)
+                return
             #LogOutput('Spreadsheet loaded...')
             dfPA = dfPA.parse("Sheet1")
             #LogOutput('Spreadsheet parsed...')
-            NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
 
             if PA == 'Life Sciences and Pharmaceuticals': PA = 'Life Sciences'
             if PA == 'Banking and Finance': PA = 'Banking &amp; Finance'
@@ -67,11 +83,11 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                     coretitle.text = str(topic)
 
                     for x in range(0,topicCount):                               
-                        newsTitle = dfTopic.Title.iloc[x]     
-                        newsCitation = dfTopic.Citation.iloc[x]
+                        newsTitle = str(dfTopic.Title.iloc[x]     )
+                        newsCitation = str(dfTopic.Citation.iloc[x])
                         newsDate = dfTopic.IssueDate.iloc[x]
                         newsPubDate = dfTopic.PubDate.iloc[x]
-                        newsMiniSummary = dfTopic.MiniSummary.iloc[x]
+                        newsMiniSummary = str(dfTopic.MiniSummary.iloc[x])
                         newsSources = dfTopic.Sources.iloc[x]
                         try: newsURLs = dfTopic.URLs.iloc[x]
                         except AttributeError: newsURLs = 'nan'
@@ -117,7 +133,8 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                                     newsSources = newsSources.findall(".//url")
                                     for newsSource in newsSources:
                                         coreurl = etree.SubElement(corepara, '{%s}url' % NSMAP['core'])
-                                        coreurl.set('address', newsSource.get('address'))
+                                        try:coreurl.set('address', newsSource.get('address'))
+                                        except:coreurl.set('address', '')
                                         coreurl.text = newsSource.text
                                         #print(i, newsSourcesLen)
                                         if i < newsSourcesLen:
@@ -138,62 +155,65 @@ def XMLGeneration(PA, highlightDate, highlightType, outputDir):
                                         coreurl.text = newsSource.text
                                         coreurl.tail = '.'
                                     except AttributeError: print('No source URL given...')
-                    
-                            
-
+                
+                if templateFilepath != 'na': XMLFilepath = archiveDir + constantPA + ' news items ' + highlightDate + '.xml' 
+                else: XMLFilepath = outputDir + constantPA + '\\' + constantPA + ' news items ' + highlightDate + '.xml'
                 tree = etree.ElementTree(khdoc)
-                tree.write(XMLFilepath,encoding='utf-8')
+                try: 
+                    tree.write(XMLFilepath,encoding='utf-8')  
+                    f = open(XMLFilepath,'r', encoding='utf-8')
+                    filedata = f.read()
+                    f.close()
+                    newdata = filedata  
+                    newdata = newdata.replace("<kh:document ","""<?xml version="1.0" encoding="UTF-8"?><!--Arbortext, Inc., 1988-2013, v.4002--><!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd"><?Pub EntList mdash reg #8364 #176 #169 #8230 #10003 #x2610 #x2611 #x2612 #x2613?><?Pub Inc?><kh:document """)#<kh:document xmlns:core="http://www.lexisnexis.com/namespace/sslrp/core" xmlns:fn="http://www.lexisnexis.com/namespace/sslrp/fn" xmlns:header="http://www.lexisnexis.com/namespace/uk/header" xmlns:kh="http://www.lexisnexis.com/namespace/uk/kh" xmlns:lnb="http://www.lexisnexis.com/namespace/uk/lnb" xmlns:lnci="http://www.lexisnexis.com/namespace/common/lnci" xmlns:tr="http://www.lexisnexis.com/namespace/sslrp/tr">""")
+                    newdata = newdata.replace("[PA]", constantPA)
+                    newdata = newdata.replace("Life Sciences and Pharmaceuticals", "Life Sciences")
+                    newdata = newdata.replace("[weekly/monthly]", highlightType)
+                    newdata = newdata.replace("[dd Month yyyy]", highlightDate)
+                    if highlightType == 'weekly':
+                        newdata = newdata.replace("[week's/month's]", "week's")
+                    if highlightType == 'monthly':
+                        newdata = newdata.replace("[week's/month's]", "month's")
+                    f = open(XMLFilepath,'w', encoding='utf-8')
+                    f.write(newdata)
+                    f.close()
 
-                f = open(XMLFilepath,'r', encoding='utf-8')
-                filedata = f.read()
-                f.close()
-                newdata = filedata  
-                newdata = newdata.replace("<kh:document ","""<?xml version="1.0" encoding="UTF-8"?><!--Arbortext, Inc., 1988-2013, v.4002--><!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd"><?Pub EntList mdash reg #8364 #176 #169 #8230 #10003 #x2610 #x2611 #x2612 #x2613?><?Pub Inc?><kh:document """)#<kh:document xmlns:core="http://www.lexisnexis.com/namespace/sslrp/core" xmlns:fn="http://www.lexisnexis.com/namespace/sslrp/fn" xmlns:header="http://www.lexisnexis.com/namespace/uk/header" xmlns:kh="http://www.lexisnexis.com/namespace/uk/kh" xmlns:lnb="http://www.lexisnexis.com/namespace/uk/lnb" xmlns:lnci="http://www.lexisnexis.com/namespace/common/lnci" xmlns:tr="http://www.lexisnexis.com/namespace/sslrp/tr">""")
-                newdata = newdata.replace("[PA]", constantPA)
-                newdata = newdata.replace("Life Sciences and Pharmaceuticals", "Life Sciences")
-                newdata = newdata.replace("[weekly/monthly]", highlightType)
-                newdata = newdata.replace("[dd Month yyyy]", highlightDate)
-                if highlightType == 'weekly':
-                    newdata = newdata.replace("[week's/month's]", "week's")
-                if highlightType == 'monthly':
-                    newdata = newdata.replace("[week's/month's]", "month's")
-                f = open(XMLFilepath,'w', encoding='utf-8')
-                f.write(newdata)
-                f.close()
+                    print('Standalone xml exported to:' + XMLFilepath)
+                    LogOutput('Standalone xml exported to:\n' + XMLFilepath)
+                except PermissionError: 
+                    print('Permission error with: ' + XMLFilepath)
+                    LogOutput('Permission error with: ' + XMLFilepath)
 
-                print('XML exported to...' + XMLFilepath)
-                LogOutput('XML exported to...' + XMLFilepath)
-
-                #Insert news items into template file in the watched folder
-                templateFilepath = FindMostRecentFile(outputDir + constantPA + '\\Auto-generate XML\\', '*.xml')            
-                if templateFilepath != 'na': 
-                    #templateFilepathDate = re.search('template (.*) test',templateFilepath).group(1) 
-                    
-                    postConversionTemplateFilename = re.search(r'.*\\(.*)', templateFilepath).group(1)
-                    postConversionTemplateFilepath = outputDir + constantPA + '\\' + postConversionTemplateFilename
-
-                    templatetree = etree.parse(templateFilepath).getroot()         
-                    try:
-                        templateKHbody = templatetree.find('.//kh:body', NSMAP)    #find element of elements where insertion will be   
-                        i=0
-                        for trsecmain in tree.findall('.//tr:secmain', NSMAP):
-                            templateKHbody.insert(2+i, trsecmain) #insert at 3rd element after increment
-                            i+=1
+                #Write xml to file post loop, #insert trsecmain into template aswell     
+                if templateFilepath != 'na':
+                    try: 
+                        print('Number of news items in xlsx: ' + str(len(khdoc.findall('.//tr:secmain', NSMAP))))
+                        for trsecmain2 in khdoc.findall('.//tr:secmain', NSMAP):
+                            templateKHbody.insert(2+t, trsecmain2) #insert at 3rd element after increment (minisummary is second, needs to follow that)
+                            t+=1
                     except:
                         print('Problem inserting news items into the template...')
                         LogOutput('Problem inserting news items into the template...')
-                    tree = etree.ElementTree(templatetree)
-                    tree.write(postConversionTemplateFilepath, encoding="utf-8", xml_declaration=True, doctype='<!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd">')    
+            
+            
+                    templatetree = etree.ElementTree(templateroot)
+                    templatetree.write(finalXMLFilepath, encoding="utf-8", xml_declaration=True, doctype='<!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\KnowHow\\KnowHow.dtd">')    
+                    print('Template XML converted and exported to...' + finalXMLFilepath)
+                    LogOutput('Template XML converted and exported to:\n' + finalXMLFilepath)
                     
-                    print('Template XML converted and exported to...' + postConversionTemplateFilepath)
-                    LogOutput('Template XML converted and exported to:\n' + postConversionTemplateFilepath)
+                    shutil.copy(templateFilepath, templateArchiveFilepath) #copy template file to archive                    
+                    print('Copied old template file to: ' + templateArchiveFilepath)
+                    LogOutput('Copied old template file to: \n' + templateArchiveFilepath)
                     os.remove(templateFilepath) #Delete old file
                     print('Deleted old template file: ' + templateFilepath)
                     LogOutput('Deleted old template file:\n' + templateFilepath)
-                else:                    
-                    print('No Template supplied for: ' + constantPA)
-                    LogOutput('No Template supplied for: ' + constantPA)
                     
+
+                      
+                
+                
+
+                                    
                 if os.path.isdir(archiveDir) == False:
                     os.makedirs(archiveDir)
 
@@ -239,16 +259,21 @@ def LogOutput(message):
     l.write(message + '\n')
     l.close()
 
+#290420 - added line to accept *draft.xml in the autogen folder
+#state = 'livedev'
+state = 'live'
 
-#Directories
-logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"   
-#logDir = "\\\\atlas\\lexispsl\\Highlights\\dev\\Automatic creation\\Logs\\" 
-outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
-#outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+if state == 'livedev':
+    logDir = "\\\\atlas\\lexispsl\\Highlights\\dev\\logs\\"
+    outputDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Practice Areas\\'
+if state == 'live':
+    logDir = "\\\\atlas\\lexispsl\\Highlights\\logs\\"   
+    outputDir = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\'
 
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
+NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
 
 
 JCSLogFile = logDir + 'JCSlog-newsxmlgen.txt'
