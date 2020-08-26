@@ -17,7 +17,7 @@ import openpyxl
 from openpyxl.styles import Alignment, PatternFill, Border, Side, Font, colors
 
 
-def XLSAddFormat(PA):
+def xls_add_format(PA):
     constantPA = PA  
     XLSFilepath = outputDir + constantPA + '\\' + constantPA + ' news items ' + highlightDate + '.xlsx'
 
@@ -90,7 +90,7 @@ def XLSAddFormat(PA):
         log('COULD NOT EXPORT DUE TO PERMISSION ERROR: ' + XLSFilepath)
     #wait = input("PAUSED...when ready press enter")
 
-def CSVGeneration(PA, highlightDate, highlightType, df, outputDir, PrevHighlightsFilepath):
+def csv_generation(PA, highlightDate, highlightType, df, outputDir, PrevHighlightsFilepath):
     #log('Loading xml: ' + PA + ' ' + PrevHighlightsFilepath)
     #if PrevHighlightsFilepath != 'na':
     #    tree = etree.parse(PrevHighlightsFilepath)
@@ -191,7 +191,7 @@ def FindLastWeekHighLightDoc(directory, PA):
     
 
 
-def ExtractFromNewsFeed(df_archive):
+def extract_from_news_feed(df_archive):
 
     df = pd.DataFrame()
     log('Looping through the news xml log...')
@@ -281,7 +281,7 @@ JCSLogFile = logDir + 'JCSlog-newscsvgen.txt'
 #with open(JCSLogFile, 'w', newline='', encoding='utf-8') as myfile:
 
 l = open(JCSLogFile,'w')
-logdate =  str(time.strftime("%d%m%Y"))
+logdate =  str(time.strftime("%d/%m/%Y %H:%M:%S"))
 l.write("Start "+logdate+"\n")
 l.close()
 
@@ -302,7 +302,7 @@ except:
     df_archive = pd.DataFrame(columns = ['Citation']) #set up blank dataframe if no archive exists, helps further down the line
     log('No archive csv log found: ' + archive_filename)
 
-ExtractFromNewsFeed(df_archive)
+extract_from_news_feed(df_archive)
 df = pd.read_csv(logDir + 'all-pas-news-list.csv')
 #wait = input("PAUSED...when ready press enter")
 
@@ -311,8 +311,8 @@ log("\nNews CSV guide generation for weekly highlights...\n")
 for PA in AllPAs:
     PrevHighlightsFilepath = FindLastWeekHighLightDoc(highlightsArchiveDir, PA)
     #if PA not in MonthlyPAs: 
-    CSVGeneration(PA, highlightDate, 'weekly', df, outputDir, PrevHighlightsFilepath)
-    XLSAddFormat(PA)
+    csv_generation(PA, highlightDate, 'weekly', df, outputDir, PrevHighlightsFilepath)
+    xls_add_format(PA)
 
 print('Finished, access the log here: ' + JCSLogFile)
 log('Finished')

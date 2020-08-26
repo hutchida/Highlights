@@ -258,7 +258,7 @@ def sendEmail(msg, receiver_email):
 reportDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\New and Updated content report\\'
 #reportDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\'
 #reportDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\reports\\"
-logDir = "\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Logs\\"
+logDir = "\\\\atlas\\lexispsl\\Highlights\\logs\\"
 #logDir = 'C:\\Users\\Hutchida\\Documents\\PSL\\Highlights\\Logs\\'
 aicerDir = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\AICER\\'
 #aicerDir = "C:\\Users\\Hutchida\\Documents\\PSL\\AICER\\"
@@ -274,53 +274,85 @@ existingReports = ListOfFilesInDirectory(reportDir, '*.csv')
 
 JCSLogFile = logDir + 'JCSlog-reportgen.txt'
 l = open(JCSLogFile,'w')
-logdate =  str(time.strftime("%d%m%Y"))
+logdate =  str(time.strftime("%d/%m/%Y %H:%M:%S"))
 l.write("Start "+logdate+"\n")
 l.close()
+
+today_date = str(time.strftime("%Y-%m-%d"))
 
 print("New and Updated content report for highlights...")
 LogOutput("New and Updated content report for highlights...")
 
-aicerMostRecent = FindRecentFile(aicerDir, '*AICER*.csv', 1)
-aicerSecondMostRecent = FindRecentFile(aicerDir, '*AICER*.csv', 2) #1 is the second on the list
-
+aicerMostRecent = FindRecentFile(aicerDir, '*AICER*.csv', 0)
+aicerSecondMostRecent = FindRecentFile(aicerDir, '*AICER*.csv', 1) #1 is the second on the list
+aicer_most_recent_filedate = datetime.date.fromtimestamp(os.path.getmtime(aicerMostRecent))
+print(today_date)
+print(aicer_most_recent_filedate)
 aicerMostRecentSize = os.path.getsize(aicerMostRecent)
 aicerSecondMostRecentSize = os.path.getsize(aicerSecondMostRecent)
 print(aicerMostRecent, aicerMostRecentSize)
 print(str(aicerMostRecentSize + 2000000))
 print(aicerSecondMostRecent, aicerSecondMostRecentSize)
+error = False #set default
 
 if aicerMostRecentSize + 2000000 < aicerSecondMostRecentSize: #add 2000kb as it's ok to have the aicer slightly less, but not less than a couple of meg
-    print("Problem with the most recent Aicer report: filesize appears to be significantly less than the previous Aicer report which indicates an error. Manual investigation required...")
-    errorTitle = "Problem with the most recent Aicer report: filesize appears to be significantly less than the previous Aicer report which indicates an error. Manual investigation required...\n"
+    error_title = "Problem with the most recent Aicer report: filesize appears to be significantly less than the previous Aicer report which indicates an error. Manual investigation required...\n"
+    error_message += '<p>' + error_title + '</p>'
+    error_message += "<p><b>Most recent Aicer: </b><br />" + aicerMostRecent + " <br /><b>Size: </b>" + str(aicerMostRecentSize) + "</p>"
+    error_message += "<p><b>Second most recent Aicer: </b><br />" + aicerSecondMostRecent + " <br /><b>Size: </b>" + str(aicerSecondMostRecentSize) + "</p>"
+
     text1 = "Most recent Aicer: " + aicerMostRecent + " Size: " + str(aicerMostRecentSize) + "\n"
     text2 = "Second most recent Aicer: " + aicerSecondMostRecent + " Size: " + str(aicerSecondMostRecentSize)    
     LogOutput(errorTitle + text1 + text2)
 
+
     html = "<html><head><title>" + errorTitle + "</title></head><body>"
-    html += '<div style="font-size: 100%; text-align: center;">'
-    html += '<p>' + errorTitle + '</p>'
-    html += "<p><b>Most recent Aicer: </b><br />" + aicerMostRecent + " <br /><b>Size: </b>" + str(aicerMostRecentSize) + "</p>"
-    html += "<p><b>Second most recent Aicer: </b><br />" + aicerSecondMostRecent + " <br /><b>Size: </b>" + str(aicerSecondMostRecentSize) + "</p>"
+    html += '<div style="font-size: 100%; text-align: center;">'    
+    html += error_message
     html += 'Investigate further in the below locations: <br />'
     html += '<p><a href="file://///atlas/lexispsl/Highlights/Automatic creation/AICER/" target="_blank">\\\\atlas\lexispsl\Highlights\Automatic creation\AICER\</a></p>'
-    html += '<p><a href="file://///atlas/knowhow/PSL_Content_Management/AICER_Reports/AICER_PM/" target="_blank">\\\\atlas\knowhow\PSL_Content_Management\AICER_Reports\AICER_PM\</a></p>'
     html += '<sup>See the log for more details: <br />'
-    html += '<a href="file://///atlas/lexispsl/Highlights/Automatic creation/Logs/JCSlog-reportgen.txt" target="_blank">\\\\atlas\lexispsl\Highlights\Automatic creation\Logs\JCSlog-reportgen.txt</a></sup>'
+    html += '<a href="file://///atlas/lexispsl/Highlights/logs/JCSlog-reportgen.txt" target="_blank">\\\\atlas\lexispsl\Highlights\logs\JCSlog-reportgen.txt</a></sup>'
     html += '</div></body></html>'
 
     #Email section
     sender_email = 'LNGUKPSLDigitalEditors@ReedElsevier.com'
-    receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk', 'james-john.dwyer-wilkinson@lexisnexis.co.uk', 'LNGUKPSLDigitalEditors@ReedElsevier.com']
+    receiver_email_list = ['LNGUKPSLDigitalEditors@ReedElsevier.com']
 
     #create and send email
     for receiver_email in receiver_email_list:
-        msg = formatEmail(receiver_email, errorTitle, html)
+        msg = formatEmail(receiver_email, error_title, html)
         sendEmail(msg, receiver_email)
     print('Email sent...')
     LogOutput('Email sent to...' + str(receiver_email_list))
 
 else:
+    if str(today_date) != str(aicer_most_recent_filedate):
+        error_title = "Aicer report file date not the same as today's date, manual investigation required...\n"
+        error_message = '<p>' + error_title + '</p>'
+        LogOutput(error_title)    
+
+        html = "<html><head><title>" + error_title + "</title></head><body>"
+        html += '<div style="font-size: 100%; text-align: center;">'    
+        html += error_message
+        html += 'Investigate further in the below locations: <br />'
+        html += '<p><a href="file://///atlas/lexispsl/Highlights/Automatic creation/AICER/" target="_blank">\\\\atlas\lexispsl\Highlights\Automatic creation\AICER\</a></p>'
+        html += '<sup>See the log for more details: <br />'
+        html += '<a href="file://///atlas/lexispsl/Highlights/logs/JCSlog-reportgen.txt" target="_blank">\\\\atlas\lexispsl\Highlights\logs\JCSlog-reportgen.txt</a></sup>'
+        html += '</div></body></html>'
+
+        #Email section
+        sender_email = 'LNGUKPSLDigitalEditors@ReedElsevier.com'
+        receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk', 'james-john.dwyer-wilkinson@lexisnexis.co.uk', 'LNGUKPSLDigitalEditors@ReedElsevier.com']
+
+        #create and send email
+        for receiver_email in receiver_email_list:
+            msg = formatEmail(receiver_email, error_title, html)
+            sendEmail(msg, receiver_email)
+        print('Email sent...')
+        LogOutput('Email sent to...' + str(receiver_email_list))
+
+    #LOAD THE AICERS AND START FILTERING
     aicerFilename = re.search('.*\\\\AICER\\\\([^\.]*\.csv)',aicerMostRecent).group(1)
     print('Loading the most recent AICER report: ' + aicerFilename)
     LogOutput("Loading the most recent AICER report: " + str(aicerFilename))

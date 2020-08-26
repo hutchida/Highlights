@@ -9,7 +9,7 @@ import datetime
 import calendar
 import sys
 import shutil
-
+from lxml import etree
 
 def log(message):
     l = open(JCSLogFile,'a')
@@ -53,6 +53,34 @@ def Archive(listOfFiles, archiveDir):
             log('Could not delete: ' + existingFilepath)
     return copyList
 
+def find_last_week_highlight_doc(directory, PA):    
+    filelist = glob.iglob(os.path.join(directory, '*.xml')) #builds list of file in a directory based on a pattern
+    for filepath in filelist:        
+        if filepath.find('0S4D.xml') == -1:
+            #print(filepath)
+            tree = etree.parse(filepath)
+            root = tree.getroot()
+            metaData = root.xpath("//header:metadata-item[@name='master-topic-link-parameters-3']", namespaces=NSMAP)        
+            if len(metaData) == 0: metaData = root.xpath("//header:metadata-item[@name='topic-link-parameters-3']", namespaces=NSMAP)
+            
+            try: metaDataValue = re.search('^::([^:]*):',metaData[0].get('value')).group(1)
+            except AttributeError: metaDataValue = re.search('^([^:]*):',metaData[0].get('value')).group(1)
+
+            metaDataValue = re.sub(' $', '', metaDataValue) #remove whitespace at the end of the string if present
+            if metaDataValue == 'IP and IT': metaDataValue = 'IP'
+            if metaDataValue == 'Share Incentives': metaDataValue = 'Share Schemes'
+            if metaDataValue == 'InHouse Advisor': metaDataValue = 'In-House Advisor'
+            if metaDataValue == 'Life Sciences': metaDataValue = 'Life Sciences and Pharmaceuticals'
+            
+            #print(metaDataValue, PA)
+            if metaDataValue == PA: 
+                print('Match found returning filepath: ' + filepath)
+                return filepath       
+            else:
+                if PA == 'Brexit':
+                    #print(root.xpath("//kh:document-title/text()", namespaces=NSMAP)[0])
+                    if PA in  root.xpath("//kh:document-title/text()", namespaces=NSMAP)[0]: return filepath
+    return 'na'
 
 def find_most_recent_file(directory, pattern):
     try:
@@ -108,6 +136,7 @@ if state == 'livedev':
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance']    
 exceptionList = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax'] 
+NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
 
 JCSLogFile = logDir + 'JCSlog-archive.txt'
 l = open(JCSLogFile,'w')
@@ -127,8 +156,7 @@ if len(filesToArchive) > 1:
     archivedList = Archive(filesToArchive, "\\\\atlas\\lexispsl\\Automation\\Law360-conversion\\Output\\archive\\")
     log('\nArchived:\n' + str(archivedList))
 else:
-    log('Nothing to archive in Law360 output folder...\n')
-
+    log('Nothing to archive in Law360 output folder...\n')#
 
 #Archive anything found in the Law360 DEV output folder
 filesToArchive = ListOfFilesInDirectory("\\\\atlas\\lexispsl\\Automation-DEV\\Law360-conversion\\Output\\", '*.xml')
@@ -136,41 +164,61 @@ if len(filesToArchive) > 1:
     archivedList = Archive(filesToArchive, "\\\\atlas\\lexispsl\\Automation-DEV\\Law360-conversion\\Output\\archive\\")
     log('\nArchived:\n' + str(archivedList))
 else:
-    log('Nothing to archive in Law360 output folder...\n')
-
+    log('Nothing to archive in Law360 dev output folder...\n')
 
 
 #THESE WILL BE DONE ONLY ON THE DAYS TESTED FOR
+day = DayOfTheWeek(givendate)
+#day = 'Saturday'
+if  day == 'Saturday':     
+    log('Today is Saturday...')
+    #Copy the latest brexit highlights doc to the brexit pa folder ready for Thursday's template generation
+    try: brexit_highlight_filepath = find_last_week_highlight_doc('\\\\atlas\\Knowhow\\HighlightsArchive\\', 'Brexit')
+    except: log('Error getting the last week brexit highlight doc from highlights archive...')
+    new_brexit_highlight_filepath = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\Brexit\\Brexit highlights last week preview.xml'
 
-if DayOfTheWeek(givendate) == 'Friday':     
-    print('Today is Friday...')
+    try: 
+        shutil.copy(brexit_highlight_filepath, new_brexit_highlight_filepath) #Copy
+        log("Copied last week's brexit highlights doc to the brexit PA folder: " + new_brexit_highlight_filepath)
+    except: log("No brexit highlight could be found in the highlights archive so couldn't be copied across...")
+
+if day == 'Friday':     
     log('Today is Friday...')
+    
     #archive everything in the highlights PA folders that isn't a template file
-    print('Archiving everything except template files in all PA highlights folders...')
     log('Archiving everything except template files in all PA highlights folders...')
     for PA in AllPAs:    
         if PA not in exceptionList:
-            print(PA)
             log(PA)
             paDir = outputDir + PA
             archiveDir = outputDir + PA + '\\archive\\'
             filesToArchive = ListOfFilesInDirectory(paDir, '*.*') #get everything in the diretory
             filteredList = []
             for file in filesToArchive:
-                if 'template' not in file: filteredList.append(file)
+                if 'template' not in file: 
+                    if PA == 'Brexit':
+                        if 'preview' not in file:
+                            filteredList.append(file)
+                    else:
+                        filteredList.append(file)
             filesToArchive = filteredList
             if len(filesToArchive) > 1:
-                archivedList = Archive(filesToArchive, archiveDir)
-                print('\nArchived:\n' + str(archivedList))
-                log('\nArchived:\n' + str(archivedList))
+                try:
+                    archivedList = Archive(filesToArchive, archiveDir)
+                    log('\nArchived:\n' + str(archivedList))
+                except:
+                    log('\nCould not archive this PA directory, probably a spreadsheet open by another user: ' + PA)
             else:
-                print('Nothing to archive...\n')
                 log('Nothing to archive...\n')
 
             #wait = input("PAUSED...when ready press enter")
+    #After the general clean out, copy the latest brexit highlights doc to the brexit pa folder ready for Thursday's template generation
+    brexit_highlight_filepath = find_last_week_highlight_doc('\\\\atlas\\Knowhow\\HighlightsArchive\\', 'Brexit')
+    new_brexit_highlight_filepath = '\\\\atlas\\lexispsl\\Highlights\\Practice Areas\\Brexit\\Brexit highlights last week preview.xml'
+    shutil.copy(brexit_highlight_filepath, new_brexit_highlight_filepath) #Copy
+    log("Copied last week's brexit highlights doc to the brexit PA folder: " + new_brexit_highlight_filepath)
 
-
-if DayOfTheWeek(givendate) == 'Thursday':     
+if day == 'Thursday':     
     print('Today is Thursday...')
     log('Today is Thursday...')    
     print('Archiving highlights archive before repopulation later today...')
@@ -180,8 +228,6 @@ if DayOfTheWeek(givendate) == 'Thursday':
     filesToArchive = ListOfFilesInDirectory(highlightsArchiveDir, '*.*') #get everything in the diretory
     if len(filesToArchive) > 1:
         archivedList = Archive(filesToArchive, archiveDir)
-        print('\nArchived:\n' + str(archivedList))
         log('\nArchived:\n' + str(archivedList))
     else:
-        print('Nothing to archive...\n')
         log('Nothing to archive...\n')

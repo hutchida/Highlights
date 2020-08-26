@@ -54,12 +54,11 @@ def FindLastWeekHighLightDoc(directory, PA):
                 return filepath        
     return 'na'
 
-def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):    
+def template_generation(PA, highlightdate, highlightType, outputDir, NSMAP):    
     constantPA = PA        
     #PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*' + constantPA + ' Weekly highlights *.xml')
     PrevHighlightsFilepath = FindMostRecentFile(outputDir + constantPA + '\\', '*preview.xml')
-    print('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
-    LogOutput('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
+    log('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
 
     #Extract sections from other docs
     NewsAlertSection = HarvestTemplateSection(templateFilepath, 'Daily and weekly news alerts', NSMAP)
@@ -94,8 +93,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
             except: pass
 
     except:
-        print('Problem loading previous xml for: ' + constantPA)       
-        LogOutput('Problem loading previous xml for: ' + constantPA)
+        log('Problem loading previous xml for: ' + constantPA)
 
 
     #if PA == 'Life Sciences': PA = 'Life Sciences and Pharmaceuticals'
@@ -135,8 +133,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
                 #corepara.text = HeadlinePara.text
                 trsecsub1.append(HeadlinePara) 
     except: 
-        print('No Brexit headlines section found in Public Law...')
-        LogOutput('No Brexit headlines section found in Public Law...')
+        log('No Brexit headlines section found in Public Law...')
 
 
 
@@ -159,8 +156,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
                 #corepara.text = LegPara.text
                 trsecsub1.append(LegPara) 
     except: 
-        print('No Brexit legislation section found in Public Law...')
-        LogOutput('No Brexit legislation section found in Public Law...')
+        log('No Brexit legislation section found in Public Law...')
 
 
     #SIs section from Public Law highlights
@@ -182,8 +178,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
                 #corepara.text = SIPara.text
                 trsecsub1.append(SIPara) 
     except: 
-        print('No Brexit SIs section found in Public Law...')
-        LogOutput('No Brexit SIs section found in Public Law...')
+        log('No Brexit SIs section found in Public Law...')
 
     #Made Brexit SIs laid in Parliament
     trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
@@ -211,11 +206,10 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
     coretitle = etree.SubElement(trsecmain, '{%s}title' % NSMAP['core'])
     coretitle.text = "Editor's picks—the practice area/sector view"    
     corepara = etree.SubElement(trsecmain, '{%s}para' % NSMAP['core'])
-    corepara.text = 'This section contains key Brexit news hand-picked by LexisPSL lawyers from their own practice areas.'
-    LogOutput('Harvesting Brexit sections from Editors Picks in other PAs weekly highlights from...')
+    corepara.text = 'This section contains key Brexit news hand-picked by Lexis®PSL lawyers from their own practice areas.'
+    log('Harvesting Brexit sections from Editors Picks in other PAs weekly highlights from...')
     for PA in AllPAs:        
-        print(PA)
-        LogOutput(PA)
+        log(PA)
         
         PAFilepath = FindLastWeekHighLightDoc(highlightsArchiveDir, PA)
         if PAFilepath =='na': PAFilepath = FindMostRecentFile(outputDir + PA + '\\', '*preview.xml')
@@ -228,10 +222,8 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
 
              
         if PABrexitSectionExists == True:   
-            print(PAFilepath)
-            LogOutput(PAFilepath)    
+            log(PAFilepath)    
             if PA != 'Public Law':
-                print('FirstWeekOfTheMonth: ' + str(FirstWeekOfTheMonth()))
                 if FirstWeekOfTheMonth() == True:
                     if PABrexitSection != None: 
                         PASecSub1 = PABrexitSection.find('.//tr:secsub1', namespaces=NSMAP)   #find the trsecsub1
@@ -242,8 +234,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
                             coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
                             coretitle.text = PA
                             
-                            print('Brexit section found in ' + PA)
-                            LogOutput('Brexit section found in ' + PA)
+                            log('Brexit section found in ' + PA)
                             #print(PABrexitSection)
                             PASecSub1s = PABrexitSection.findall('.//tr:secsub1', namespaces=NSMAP)            
                             for PASecSub1 in PASecSub1s:
@@ -288,8 +279,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
                                     coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
                                     coretitle.text = PA
                                     
-                                    print('Brexit section found in ' + PA)
-                                    LogOutput('Brexit section found in ' + PA)
+                                    log('Brexit section found in ' + PA)
                                     #print(PABrexitSection)
                                     PASecSub1s = PABrexitSection.findall('.//tr:secsub1', namespaces=NSMAP)            
                                     for PASecSub1 in PASecSub1s:
@@ -326,8 +316,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
                             comment = etree.Comment(PA + ": no Brexit news found")
                             trsecmain.append(comment) 
                     else:
-                        print('Not the first week of the month and this PA is a monthly highlight, so skipping the brexit news harvest: ' + PA)
-                        LogOutput('Not the first week of the month and this PA is a monthly highlight, so skipping the brexit news harvest: ' + PA)
+                        log('Not the first week of the month and this PA is a monthly highlight, so skipping the brexit news harvest: ' + PA)
             else:
                 trsecsub1 = etree.SubElement(trsecmain, '{%s}secsub1' % NSMAP['tr'])
                 coretitle = etree.SubElement(trsecsub1, '{%s}title' % NSMAP['core'])
@@ -344,6 +333,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
                 lncicite.set('normcite', HighlightsOverviewDict.get(PA))
                 lncicontent = etree.SubElement(lncicite, '{%s}content' % NSMAP['lnci'])
                 lncicontent.text = PA + ' weekly highlights—overview'
+                lncicite.tail = '.'
         else:
             comment = etree.Comment(PA + ": no highlight doc found")
             trsecmain.append(comment) 
@@ -352,7 +342,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
         #existingDocs = ListOfFilesInDirectory(outputDir + PA + '\\', '*preview.xml')
         #archivedList = Archive(existingDocs, outputDir + PA + '\\')
         #print('Moved following files to Archive folder: ' + str(archivedList))
-        #LogOutput('Moved following files to Archive folder: ' + str(archivedList))
+        #log('Moved following files to Archive folder: ' + str(archivedList))
     #Links section  
     try: khbody.append(LinksSection)
     except: print('No links section found...')
@@ -373,11 +363,9 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
 
     #Brexit new or updated docs, i.e. Links section
     weeklyNewReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_new_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
-    print('Latest weeklyNewReportFilepath:' + weeklyNewReportFilepath)
-    LogOutput('Latest weeklyNewReportFilepath:' + weeklyNewReportFilepath)
+    log('Latest weeklyNewReportFilepath:' + weeklyNewReportFilepath)
     weeklyUpdateReportFilepath = FindMostRecentFile(reportDir, '*AICER*_UKPSL_weekly_HL_updated_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].csv')
-    print('Latest weeklyUpdateReportFilepath:' + weeklyUpdateReportFilepath)
-    LogOutput('Latest weeklyUpdateReportFilepath:' + weeklyUpdateReportFilepath)
+    log('Latest weeklyUpdateReportFilepath:' + weeklyUpdateReportFilepath)
     dfNewHighlights = DFCleanup(pd.read_csv(weeklyNewReportFilepath), ['SubtopicShortcut', 'Shortcut', 'SubtopicShortcutOfShortcut'], reportDir + 'new')
     dfUpdateHighlights = DFCleanup(pd.read_csv(weeklyUpdateReportFilepath), ['SubtopicShortcut', 'Shortcut', 'SubtopicShortcutOfShortcut'], reportDir + 'updated')
     dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')        
@@ -401,8 +389,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
             if len(dfNew) > 0: 
                 dfNew = dfNew.sort_values(['DocTitle'], ascending = True)
                 newHighlightCount = len(dfNew)
-                print(ContentType, newHighlightCount, 'new docs')   
-                LogOutput(ContentType + ' ' + str(newHighlightCount) + ' new docs')
+                log(ContentType + ' ' + str(newHighlightCount) + ' new docs')
                 if ContentType == 'Precedent':
                     if newHighlightCount > 1: ContentTypeHeader = 'New Precedents'
                     else: ContentTypeHeader = 'New Precedent'
@@ -530,8 +517,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
     dfNew = dfNew[dfNew["DocTitle"].str.contains("Brexit", case=False)]
     dfNew = dfNew.sort_values(['DocTitle'], ascending = True)
     newHighlightCount = len(dfNew)
-    print(newHighlightCount, 'new QAs')     
-    LogOutput(str(newHighlightCount) + ' new QAs')
+    log(str(newHighlightCount) + ' new QAs')
     if newHighlightCount > 0:     
         dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')       
         trsecmain = etree.SubElement(khbody, '{%s}secmain' % NSMAP['tr'])
@@ -556,8 +542,8 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
                 try: pguid = tag.get('pguid')    
                 except AttributeError: 
                     pguid = 'notfound'
-                    print('Not found on pguid look up list: ' + str(DocID) + str(DocTitle))  
-                    LogOutput(PA)       
+                    log('Not found on pguid look up list: ' + str(DocID) + str(DocTitle))  
+                    log(PA)       
                 #print(DocID, DocTitle, ContentType, dpsi, pguidlookup, pguid)              
             except: pguid = 'notfound'
 
@@ -581,13 +567,55 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
     #LexTalkSection news alerts    
     try: khbody.append(LexTalkSection)
     except: 
-        print('No LexTalkSection section found...')        
-        LogOutput('No LexTalkSection section found...')
+        log('No LexTalkSection section found...')
 
         
     #Useful information
     try: khbody.append(UsefulInfoSection)
-    except: print('No Useful information section found...')
+    except: log('No Useful information section found...')
+
+
+
+    def get_pguid_from_dpsi_docid(dpsi, docid):
+        try:
+            
+            #print(DocID, DocTitle, ContentType, dpsi, pguidlookup)
+            if dpsi == '0S4D': tag = pguidlookupdom_0S4D.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0OLB': tag = pguidlookupdom_0OLB.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0OJ8': tag = pguidlookupdom_0OJ8.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0OJK': tag = pguidlookupdom_0OJK.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0RU8': tag = pguidlookupdom_0RU8.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0OLV': tag = pguidlookupdom_0OLV.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0OJW': tag = pguidlookupdom_0OJW.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0OM9': tag = pguidlookupdom_0OM9.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0R2W': tag = pguidlookupdom_0R2W.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0OLN': tag = pguidlookupdom_0OLN.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0ON9': tag = pguidlookupdom_0ON9.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0ONJ': tag = pguidlookupdom_0ONJ.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0SBX': tag = pguidlookupdom_0SBX.find(".//document[@database-id='" + str(docid) + "']")
+            if dpsi == '0OJQ': tag = pguidlookupdom_0OJQ.find(".//document[@database-id='" + str(docid) + "']")
+            else:
+                pguidlookupdom = etree.parse(pguidlistDir + dpsi + '.xml') 
+                tag = pguidlookupdom.find(".//document[@database-id='" + str(docid) + "']")
+            return tag.get('pguid')
+        except:
+            return 'notfound'
+
+    log('Replacing dpsi_docid links for pguids...')
+    list_of_lnci_cites = khdoc.findall('.//lnci:cite', NSMAP)
+    for normcite in list_of_lnci_cites:
+        #print(normcite.get('normcite'))
+        try: 
+            dpsi = re.search('(.*)_(\d*)',normcite.get('normcite')).group(1)
+            docid = re.search('(.*)_(\d*)',normcite.get('normcite')).group(2)
+        except: 
+            log('ERROR getting dpsi and doc ID from:')
+            log(str(normcite.get('normcite')))
+            continue #lnci cite has no normcite value, so skip as there's nothing to replace
+        
+        pguid = get_pguid_from_dpsi_docid(dpsi, docid)
+        log('Replacing ' + str(normcite.get('normcite')) + ' for ' + pguid)
+        normcite.set('normcite', pguid)        
 
 
     tree = etree.ElementTree(khdoc)
@@ -614,14 +642,13 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NSMAP):
     #Archive the old preview files
     #Archive([PrevHighlightsFilepath], outputDir + constantPA + '\\')
     #print('Archived: ' + PrevHighlightsFilepath)
-    #LogOutput('Archived: ' + PrevHighlightsFilepath)
+    #log('Archived: ' + PrevHighlightsFilepath)
     #Archive([PublicLawFilepath], outputDir + constantPA + '\\')
     #print('Archived: ' + PublicLawFilepath)
-    #LogOutput('Archived: ' + PublicLawFilepath)
+    #log('Archived: ' + PublicLawFilepath)
 
 
-    print('XML exported to...' + xmlfilepath)
-    LogOutput('XML exported to...' + xmlfilepath)
+    log('XML exported to...' + xmlfilepath)
     #wait = input("PAUSED...when ready press enter")
 
 def ListOfFilesInDirectory(directory, pattern):
@@ -699,10 +726,11 @@ def DFCleanup(df, ShortcutTypeList, ReportType):
     return df1
 
 
-def LogOutput(message):
+def log(message):
     l = open(JCSLogFile,'a')
     l.write(message + '\n')
     l.close()
+    print(message)
 
 def formatEmail(Subject, HTML):
     msg = MIMEMultipart("alternative")
@@ -731,6 +759,7 @@ if state == 'livedev':
     reportDir = '\\\\atlas\\lexispsl\\Highlights\\dev\\Reports\\'
     
 if state == 'live':
+    #receiver_email_list = ['daniel.hutchings.1@lexisnexis.co.uk']
     receiver_email_list = ['LNGUKPSLDigitalEditors@ReedElsevier.com', 'holly.nankivell@lexisnexis.co.uk', 'louis.payne@lexisnexis.co.uk', 'anne.kingsley@lexisnexis.co.uk', 'Cristiana.Rossetti@lexisnexis.co.uk', 'michael.agnew@lexisnexis.co.uk', 'james-john.dwyer-wilkinson@lexisnexis.co.uk']
     logDir = "\\\\atlas\\lexispsl\\Highlights\\logs\\"
     templateFilepath = '\\\\atlas\\lexispsl\\Highlights\\Automatic creation\\Templates\\All Highlights Template.xml'
@@ -739,7 +768,7 @@ if state == 'live':
 
 AllPAs = ['Arbitration', 'Banking and Finance', 'Commercial', 'Competition', 'Construction', 'Corporate', 'Corporate Crime', 'Dispute Resolution', 'Employment', 'Energy', 'Environment', 'Family', 'Financial Services', 'Immigration', 'Information Law', 'In-House Advisor', 'Insurance', 'IP', 'Life Sciences and Pharmaceuticals', 'Local Government', 'Pensions', 'Personal Injury', 'Planning', 'Practice Compliance', 'Practice Management', 'Private Client', 'Property', 'Property Disputes', 'Public Law', 'Restructuring and Insolvency', 'Risk and Compliance', 'Share Schemes', 'Tax', 'TMT', 'Wills and Probate']    
 MonthlyPAs = ['Competition', 'Family', 'Immigration', 'Insurance', 'Practice Compliance', 'Risk and Compliance']    
-HighlightsOverviewDict = {"Arbitration": "urn:editpractgovw:8073C915-D589-429E-85E5-F6C8005B41C4", "Banking and Finance": "urn:editpractgovw:58DD7046-895E-46D9-BCE7-670752E807A2", "Commercial": "urn:editpractgovw:5C878F6D-BFE5-44B0-902B-ABBB0DE86071", "Competition": "urn:editpractgovw:C21A4E17-C8D8-4406-B831-21B9DF8B3FD4", "Construction": "urn:editpractgovw:801E3A8B-6F14-47DF-ADD4-9CA3A68E7132", "Corporate": "urn:editpractgovw:0A866544-D60E-401F-9AC5-3F557EB72EA5", "Corporate Crime": "urn:editpractgovw:66046005-2000-4095-95BD-1F9B5273936D", "Dispute Resolution": "urn:editpractgovw:CF409E6B-7930-4510-89FA-8EECFD824E1B", "Employment": "urn:editpractgovw:B698303D-8869-4970-BE78-42B7BBB2CFFE", "Energy": "urn:editpractgovw:906E991B-3579-4780-BCE9-E1ECEB16F2AD", "Environment": "urn:editpractgovw:8E76C46D-B1C8-47B2-B40D-81D3427C125E", "Family": "urn:editpractgovw:D8398746-85F0-4241-AD1A-BE036054F0ED", "Financial Services": "urn:editpractgovw:6F07D371-A265-4983-98A5-A7EDE56957D7", "Immigration": "urn:editpractgovw:4B45F899-A278-4004-9F83-08D87207E3C1", "Information Law": "urn:editpractgovw:613B3C9A-F1E8-42DD-A98B-AA030E002D84", "In-House Advisor": "notfound", "Insurance": "urn:editpractgovw:F5F3A6FE-8BBA-418B-86DD-6ECC167B1360", "IP": "urn:editpractgovw:E3D61B89-76D9-4676-B15C-A0612FD8A0A7", "Life Sciences": "urn:editpractgovw:F72AEE92-5B93-48C1-885B-3E40A01C36C8", "Local Government": "urn:editpractgovw:FA30E9E1-C3B0-443C-9B0D-1F8BBD96532C", "Pensions": "urn:editpractgovw:4DA425C3-ECD3-4859-94B8-0A1E32350336", "Personal Injury": "urn:editpractgovw:8C5A7268-F99E-40AE-A4C1-80730567097E", "Planning": "urn:editpractgovw:6D28D29F-63A0-4E45-B556-23BF2AB6CE16", "Practice Compliance": "urn:editpractgovw:14761791-5F12-4917-A764-61C2EFC932EE",  "Practice Management": "notfound", "Private Client": "urn:editpractgovw:93561073-3703-4F33-89D1-2CFE104DA262", "Property": "urn:editpractgovw:C3406B32-888E-40D1-BC99-DEBEBA7C39A4", "Property Disputes": "urn:editpractgovw:5FC2E55E-9616-4EEE-823C-26A48403BE9F", "Public Law": "urn:editpractgovw:6D97698D-FB93-484A-A5E5-1896CF796E10", "Restructuring and Insolvency": "urn:editpractgovw:9A232D5A-EA63-4B8F-A2C9-C4702D2EFAB4", "Risk and Compliance": "urn:editpractgovw:2FD8C53E-8960-420B-936A-E1B52C1FF521", "Share Schemes": "urn:editpractgovw:061439F5-C1E5-4D51-968B-1D3277CDB2E8", "Tax": "urn:editpractgovw:B4F236F0-7D46-4568-8D80-E88FDEA1424A", "TMT": "urn:editpractgovw:D0CDDF42-5598-48D9-985C-0F895D10AD50", "Wills and Probate": "notfound"}
+HighlightsOverviewDict = {"Arbitration": "urn:editpractgovw:8073C915-D589-429E-85E5-F6C8005B41C4", "Banking and Finance": "urn:editpractgovw:58DD7046-895E-46D9-BCE7-670752E807A2", "Commercial": "urn:editpractgovw:5C878F6D-BFE5-44B0-902B-ABBB0DE86071", "Competition": "urn:editpractgovw:C21A4E17-C8D8-4406-B831-21B9DF8B3FD4", "Construction": "urn:editpractgovw:801E3A8B-6F14-47DF-ADD4-9CA3A68E7132", "Corporate": "urn:editpractgovw:0A866544-D60E-401F-9AC5-3F557EB72EA5", "Corporate Crime": "urn:editpractgovw:66046005-2000-4095-95BD-1F9B5273936D", "Dispute Resolution": "urn:editpractgovw:CF409E6B-7930-4510-89FA-8EECFD824E1B", "Employment": "urn:editpractgovw:B698303D-8869-4970-BE78-42B7BBB2CFFE", "Energy": "urn:editpractgovw:906E991B-3579-4780-BCE9-E1ECEB16F2AD", "Environment": "urn:editpractgovw:8E76C46D-B1C8-47B2-B40D-81D3427C125E", "Family": "urn:editpractgovw:D8398746-85F0-4241-AD1A-BE036054F0ED", "Financial Services": "urn:editpractgovw:6F07D371-A265-4983-98A5-A7EDE56957D7", "Immigration": "urn:editpractgovw:4B45F899-A278-4004-9F83-08D87207E3C1", "Information Law": "urn:editpractgovw:613B3C9A-F1E8-42DD-A98B-AA030E002D84", "In-House Advisor": "notfound", "Insurance": "urn:editpractgovw:F5F3A6FE-8BBA-418B-86DD-6ECC167B1360", "IP": "urn:editpractgovw:11AFFA76-B5EF-4733-8A5C-88079D29EC1B", "Life Sciences": "urn:editpractgovw:F72AEE92-5B93-48C1-885B-3E40A01C36C8", "Local Government": "urn:editpractgovw:FA30E9E1-C3B0-443C-9B0D-1F8BBD96532C", "Pensions": "urn:editpractgovw:4DA425C3-ECD3-4859-94B8-0A1E32350336", "Personal Injury": "urn:editpractgovw:8C5A7268-F99E-40AE-A4C1-80730567097E", "Planning": "urn:editpractgovw:6D28D29F-63A0-4E45-B556-23BF2AB6CE16", "Practice Compliance": "urn:editpractgovw:14761791-5F12-4917-A764-61C2EFC932EE",  "Practice Management": "notfound", "Private Client": "urn:editpractgovw:93561073-3703-4F33-89D1-2CFE104DA262", "Property": "urn:editpractgovw:C3406B32-888E-40D1-BC99-DEBEBA7C39A4", "Property Disputes": "urn:editpractgovw:5FC2E55E-9616-4EEE-823C-26A48403BE9F", "Public Law": "urn:editpractgovw:6D97698D-FB93-484A-A5E5-1896CF796E10", "Restructuring and Insolvency": "urn:editpractgovw:9A232D5A-EA63-4B8F-A2C9-C4702D2EFAB4", "Risk and Compliance": "urn:editpractgovw:2FD8C53E-8960-420B-936A-E1B52C1FF521", "Share Schemes": "urn:editpractgovw:061439F5-C1E5-4D51-968B-1D3277CDB2E8", "Tax": "urn:editpractgovw:B4F236F0-7D46-4568-8D80-E88FDEA1424A", "TMT": "urn:editpractgovw:D0CDDF42-5598-48D9-985C-0F895D10AD50", "Wills and Probate": "notfound"}
 NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
 
 highlightsArchiveDir = '\\\\atlas\\Knowhow\\HighlightsArchive\\'
@@ -765,28 +794,39 @@ l.close()
 
 #main script
 highlightDate = str(givendate.strftime("%#d %B %Y")) #the hash character turns off the leading zero in the day
-print('Generating Brexit templates for tomorrow: ' + highlightDate)
-LogOutput('Generating Brexit templates for tomorrow: ' + highlightDate)
+log('Generating Brexit templates for tomorrow: ' + highlightDate)
 PrevTemplateError=0
 
+log('Loading 0S4D.xml and a bunch of other heavy xml files for pguid look up later...')
+pguidlookupdom_0S4D = etree.parse(pguidlistDir + '0S4D.xml')
+pguidlookupdom_0OLB = etree.parse(pguidlistDir + '0OLB.xml')
+pguidlookupdom_0OJ8 = etree.parse(pguidlistDir + '0OJ8.xml')
+pguidlookupdom_0OJK = etree.parse(pguidlistDir + '0OJK.xml')
+pguidlookupdom_0RU8 = etree.parse(pguidlistDir + '0RU8.xml')
+pguidlookupdom_0OLV = etree.parse(pguidlistDir + '0OLV.xml')
+pguidlookupdom_0OJW = etree.parse(pguidlistDir + '0OJW.xml')
+pguidlookupdom_0OM9 = etree.parse(pguidlistDir + '0OM9.xml')
+pguidlookupdom_0R2W = etree.parse(pguidlistDir + '0R2W.xml')
+pguidlookupdom_0OLN = etree.parse(pguidlistDir + '0OLN.xml')
+pguidlookupdom_0ON9 = etree.parse(pguidlistDir + '0ON9.xml')
+pguidlookupdom_0ONJ = etree.parse(pguidlistDir + '0ONJ.xml')
+pguidlookupdom_0SBX = etree.parse(pguidlistDir + '0SBX.xml')
+pguidlookupdom_0OJQ = etree.parse(pguidlistDir + '0OJQ.xml')
+
 if PublicLawFilepath != 'na':
-    print('Most recent Public Law highlight doc to harvest: \n' + PublicLawFilepath)
-    LogOutput('Most recent Public Law highlight doc to harvest: \n' + PublicLawFilepath)
+    log('Most recent Public Law highlight doc to harvest: \n' + PublicLawFilepath)
 else:
-    print('Problem encountered trying to find the most recent Public Law weekly highlight doc in: ' + outputDir + 'Public Law\\' + ' with the pattern *preview.xml')
-    LogOutput('Problem encountered trying to find the most recent Public Law weekly highlight doc in: ' + outputDir + 'Public Law\\' + ' with the pattern *preview.xml')
+    log('Problem encountered trying to find the most recent Public Law weekly highlight doc in: ' + outputDir + 'Public Law\\' + ' with the pattern *preview.xml')
     PrevTemplateError+=1
 if BrexitTemplateFilepath != 'na':
-    print('Most recent Brexit template  to harvest: \n' + BrexitTemplateFilepath)
-    LogOutput('Most recent Brexit template  to harvest: \n' + BrexitTemplateFilepath)
+    log('Most recent Brexit template  to harvest: \n' + BrexitTemplateFilepath)
 else:
-    print('Problem encountered trying to find the most recent Brexit highlight doc in: ' + outputDir + 'Brexit\\' + ' with the pattern *preview.xml')
-    LogOutput('Problem encountered trying to find the most recent Brexit highlight doc in: ' + outputDir + 'Brexit\\' + ' with the pattern *preview.xml')
+    log('Problem encountered trying to find the most recent Brexit highlight doc in: ' + outputDir + 'Brexit\\' + ' with the pattern *preview.xml')
     PrevTemplateError+=1
 
 if PrevTemplateError==0:
     PA = 'Brexit'
-    TemplateGeneration(PA, highlightDate, highlightType, outputDir, NSMAP)
+    template_generation(PA, highlightDate, highlightType, outputDir, NSMAP)
 
     Subject = "Brexit highlights report - READY"
     HTML = """\
@@ -835,10 +875,8 @@ else:
         msg = formatEmail(Subject, HTML)
         sendEmail(msg, receiver_email)
     
-    print("Problem with the previous week's highlights docs not being present, email sent to distribution list...")
-    LogOutput("Problem with the previous week's highlights docs not being present, email sent to distribution list...")
+    log("Problem with the previous week's highlights docs not being present, email sent to distribution list...")
 #wait = input("PAUSED...when ready press enter")
-print('Finished')
-LogOutput('Finished')
+log('Finished')
 
 

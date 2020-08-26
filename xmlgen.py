@@ -41,7 +41,7 @@ def DFCleanup(df, ShortcutTypeList, ReportType):
     return df1
 
     
-def XMLGenerationWeekly(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir):
+def xml_generation(PA, highlightDate, highlightType, dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir):
     constantPA = PA        
     log('\n' + PA)
     NSMAP = {'core': 'http://www.lexisnexis.com/namespace/sslrp/core', 'fn': 'http://www.lexisnexis.com/namespace/sslrp/fn', 'header': 'http://www.lexisnexis.com/namespace/uk/header', 'kh': 'http://www.lexisnexis.com/namespace/uk/kh', 'lnb': 'http://www.lexisnexis.com/namespace/uk/lnb', 'lnci': 'http://www.lexisnexis.com/namespace/common/lnci', 'tr': 'http://www.lexisnexis.com/namespace/sslrp/tr'}#, 'atict': 'http://www.arbortext.com/namespace/atict'}
@@ -451,7 +451,7 @@ doctype = '<!DOCTYPE kh:document SYSTEM "\\\\voyager\\templates\\DTDs\\LNUK\\Kno
 
 JCSLogFile = logDir + 'JCSlog-xmlgen.txt'
 l = open(JCSLogFile,'w')
-logdate =  str(time.strftime("%d%m%Y"))
+logdate =  str(time.strftime("%d/%m/%Y %H:%M:%S"))
 l.write("Start "+logdate+"\n")
 l.close()
 
@@ -467,7 +467,7 @@ if str(givenstrdate) in MonthlyDates:
     highlightDate = str(time.strftime("%B %Y")) 
     dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')
     for PA in MonthlyPAs:
-        XMLGenerationWeekly(PA, highlightDate, 'monthly', dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
+        xml_generation(PA, highlightDate, 'monthly', dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
 else: 
     log('Today is not a date in the monthly highlights list of dates...skipping monthly highlight xml generation...')
 
@@ -482,7 +482,7 @@ if IsThursday(givendate) == True:
     dfdpsi = pd.read_csv(lookupdpsi, encoding='utf-8')    
     for PA in AllPAs:
         #if PA not in MonthlyPAs:
-        XMLGenerationWeekly(PA, highlightDate, 'weekly', dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
+        xml_generation(PA, highlightDate, 'weekly', dfdpsi, dfUpdateHighlights, dfNewHighlights, outputDir)
 else: 
     log('Today is not a Thursday...skipping weekly highlight xml generation...')
 

@@ -40,7 +40,7 @@ def FindLastFridayOfMonth(givendate, weekday):
     #return givendate + datetime.timedelta(days=dayshift)
     
     
-def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSection, LexTalkSection, NSMAP):  
+def template_generation(PA, highlightdate, highlightType, outputDir, NewsAlertSection, LexTalkSection, NSMAP):  
     log(PA)
     constantPA = PA     
     PA_dir = outputDir + constantPA + '\\'
@@ -53,7 +53,7 @@ def TemplateGeneration(PA, highlightdate, highlightType, outputDir, NewsAlertSec
     PrevHighlightsFilepath = FindMostRecentFile(PA_dir, '*preview.xml')
     if PrevHighlightsFilepath == 'na': #if can't find from manual download into PA folders, go look in the archive
         log('Finding last week highlight doc...')
-        PrevHighlightsFilepath = FindLastWeekHighLightDoc(highlightsArchiveDir, PA)
+        PrevHighlightsFilepath = find_last_week_highlight_doc(highlightsArchiveDir, PA)
     log('lasthighlightsfilepath: ' + PrevHighlightsFilepath)
 
     #extract info from last highlights' doc
@@ -225,7 +225,7 @@ def FindMostRecentFile(directory, pattern):
         return filelist[0]
     except: return 'na'
 
-def FindLastWeekHighLightDoc(directory, PA):    
+def find_last_week_highlight_doc(directory, PA):    
     filelist = glob.iglob(os.path.join(directory, '*.xml')) #builds list of file in a directory based on a pattern
     for filepath in filelist:
         if filepath.find('0S4D.xml') == -1:
@@ -386,7 +386,7 @@ if IsThursday(givendate) == True:
     log('Generating weekly templates for the coming Thursday: ' + highlightDate)
     for PA in AllPAs:    
         #if PA not in MonthlyPAs:
-        TemplateGeneration(PA, highlightDate, 'weekly', outputDir, NewsAlertSection, LexTalkSection, NSMAP)
+        template_generation(PA, highlightDate, 'weekly', outputDir, NewsAlertSection, LexTalkSection, NSMAP)
 
 else: log('Today is not a Thursday...skipping weekly highlight TEMPLATE generation...')
 
@@ -394,7 +394,7 @@ if str(givenstrdate) in MonthlyDates:
     highlightDate = str(lastWorkingDayOfMonth.strftime("%B %Y"))
     log('Generating monthly templates for the last working day of the month: ' + highlightDate)
     for PA in MonthlyPAs:
-        TemplateGeneration(PA, highlightDate, 'monthly', outputDir, NewsAlertSection, LexTalkSection, NSMAP)
+        template_generation(PA, highlightDate, 'monthly', outputDir, NewsAlertSection, LexTalkSection, NSMAP)
 else: log('Today is not the last working day of the month...skipping monthly highlight TEMPLATE generation...')
 
     #wait = input("PAUSED...when ready press enter")
